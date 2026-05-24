@@ -68,7 +68,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -123,7 +123,7 @@ Critical: be specific to ${domain} — reference real pages, real UI elements, r
 }
 
 // ── Model order: sonnet first (best quality), haiku as fallback ───────────────
-const MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+const MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6'];
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
@@ -192,7 +192,7 @@ module.exports = async function handler(req, res) {
       console.error(`[CM] ${model} failed: ${e.status} ${e.message}`);
       if (e.status === 401) return res.status(500).json({ error: true, message: 'API key invalid. Check ANTHROPIC_API_KEY in Vercel settings.' });
       if (e.status === 429) return res.status(429).json({ error: true, message: 'AI rate limit reached. Please wait a minute and try again.' });
-      if (e.status !== 404 && e.status !== 408) break;
+      if (e.status !== 404) break; // stop retrying on timeout (408) — second model will also timeout
     }
   }
 
