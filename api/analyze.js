@@ -68,7 +68,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 3000, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -99,27 +99,17 @@ function callAnthropic(apiKey, model, prompt) {
   });
 }
 
-// ── Full quality prompt ───────────────────────────────────────────────────────
+// ── Prompt — concise output that fits in 1000 tokens ────────────────────────
 function buildPrompt(url, industry) {
   const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-  return `You are a world-class conversion rate optimisation (CRO) expert and consumer psychologist.
+  return `You are a senior CRO expert. Analyse ${url} for the ${industry} industry.
 
-Analyse this website: ${url} (${domain}) for the ${industry} industry.
+IMPORTANT: Keep every description under 20 words. Be specific, not verbose.
 
-Apply these frameworks rigorously:
-1. Cialdini's 7 Principles of Influence (reciprocity, commitment, social proof, authority, liking, scarcity, unity)
-2. Cognitive Load Theory — Miller's Law, information architecture
-3. Prospect Theory & Loss Aversion (Kahneman & Tversky)
-4. Visual Hierarchy & F/Z-Pattern Reading
-5. Fogg Behavior Model (motivation × ability × prompt)
-6. Pricing psychology & Paradox of Choice
-7. CRO best practices — above-fold CTAs, trust signals, clarity, urgency
+Return ONLY this exact JSON structure, no markdown, no extra text:
+{"siteName":"name","overallScore":54,"overallGrade":"C+","overallSummary":"One clear sentence about conversion performance.","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"Short title","description":"Principle name + specific problem under 20 words"},{"severity":"HIGH","title":"Short title","description":"Under 20 words"},{"severity":"MED","title":"Short title","description":"Under 20 words"},{"severity":"MED","title":"Short title","description":"Under 20 words"},{"severity":"LOW","title":"Short title","description":"Under 20 words"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"Specific 15-word finding for ${domain}"},{"trigger":"Scarcity / Urgency","issue":"15-word finding"},{"trigger":"Authority Signals","issue":"15-word finding"},{"trigger":"Loss Aversion","issue":"15-word finding"},{"trigger":"Cognitive Load","issue":"15-word finding"},{"trigger":"Reciprocity","issue":"15-word finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate Fixes","items":["Specific action","Specific action","Specific action"]},{"phase":"MONTH 1","label":"Core Changes","color":"#7B5CF6","title":"Strategic Improvements","items":["Specific action","Specific action","Specific action"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.1%","estimatedUplift":"+121%","timeframe":"90 days"}}
 
-Return ONLY a valid JSON object starting with { and ending with }. No markdown. No extra text.
-
-{"siteName":"brand name","overallScore":54,"overallGrade":"C+","overallSummary":"2-3 sentence honest assessment of conversion performance","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"weakness title","description":"Name the psychological principle and explain the specific problem on this site"},{"severity":"HIGH","title":"title","description":"explanation"},{"severity":"MED","title":"title","description":"explanation"},{"severity":"MED","title":"title","description":"explanation"},{"severity":"LOW","title":"title","description":"explanation"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"specific finding for ${domain}"},{"trigger":"Scarcity / Urgency","issue":"specific finding"},{"trigger":"Authority Signals","issue":"specific finding"},{"trigger":"Loss Aversion","issue":"specific finding"},{"trigger":"Cognitive Load","issue":"specific finding"},{"trigger":"Reciprocity","issue":"specific finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate High-Impact Fixes","items":["concrete action 1","concrete action 2","concrete action 3","concrete action 4"]},{"phase":"WEEK 3-6","label":"Core Rebuild","color":"#7B5CF6","title":"Psychological Architecture","items":["concrete action 1","concrete action 2","concrete action 3","concrete action 4"]},{"phase":"MONTH 2-3","label":"Scale & Test","color":"#E879F9","title":"Revenue Optimisation & Growth","items":["concrete action 1","concrete action 2","concrete action 3"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.8%","estimatedUplift":"+171%","timeframe":"90 days"}}
-
-Critical: be specific to ${domain} — reference real pages, real UI elements, real copy you know about this site. Name psychological principles in every weakness description. Return PURE JSON only.`;
+Fill in all values with real observations about ${domain}. Return pure JSON only.`;
 }
 
 // ── Model order: sonnet first (best quality), haiku as fallback ───────────────
