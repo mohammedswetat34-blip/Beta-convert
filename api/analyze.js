@@ -68,7 +68,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 3000, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -207,31 +207,48 @@ module.exports = async function handler(req, res) {
   const rawText = (apiResponse.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
   if (!rawText) return res.status(500).json({ error: true, message: 'AI returned empty response. Please try again.' });
 
-  // Strip markdown fences that Claude sometimes adds despite instructions
-  let cleaned = rawText
-    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '')
-    .replace(/\s*```\s*$/i, '').trim();
+  console.log('[CM] Raw response length:', rawText.length, 'chars. Preview:', rawText.slice(0, 120).replace(/\n/g, ' '));
 
-  const first = cleaned.indexOf('{');
-  const last  = cleaned.lastIndexOf('}');
-  if (first === -1 || last < first) {
-    console.error('[CM] No JSON found. Raw (300 chars):', rawText.slice(0, 300));
-    return res.status(500).json({ error: true, message: 'AI returned unexpected format. Please try again.' });
+  // Strip markdown fences
+  let cleaned = rawText
+    .replace(/^```json[^\n]*\n?/i, '').replace(/^```[^\n]*\n?/i, '')
+    .replace(/\n?```\s*$/i, '').trim();
+
+  // Use balanced-bracket extraction starting from first { — most robust method
+  function extractOutermostJSON(text) {
+    let depth = 0, start = -1;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      // Skip over string contents so inner {} don't confuse depth count
+      if (ch === '"' && (i === 0 || text[i-1] !== '\\')) {
+        i++;
+        while (i < text.length && !(text[i] === '"' && text[i-1] !== '\\')) i++;
+        continue;
+      }
+      if (ch === '{') { if (start === -1) start = i; depth++; }
+      else if (ch === '}') { depth--; if (depth === 0 && start !== -1) return text.slice(start, i + 1); }
+    }
+    return null;
+  }
+
+  const jsonStr = extractOutermostJSON(cleaned);
+  if (!jsonStr) {
+    console.error('[CM] No JSON object found. Raw (400 chars):', rawText.slice(0, 400));
+    return res.status(500).json({ error: true, message: 'AI returned unexpected format. Please try again.', raw: rawText.slice(0, 200) });
   }
 
   let analysis;
   try {
-    analysis = JSON.parse(cleaned.slice(first, last + 1));
+    analysis = JSON.parse(jsonStr);
   } catch (e) {
-    // Second attempt: sometimes Claude adds a trailing comma before } — strip it
-    const fixed = cleaned.slice(first, last + 1).replace(/,\s*([}\]])/g, '$1');
+    // Attempt 2: strip trailing commas (common LLM mistake)
     try {
-      analysis = JSON.parse(fixed);
-      console.log('[CM] JSON fixed by removing trailing commas');
+      analysis = JSON.parse(jsonStr.replace(/,([\s\n]*[}\]])/g, '$1'));
+      console.log('[CM] JSON fixed with trailing-comma strip');
     } catch (e2) {
-      console.error('[CM] JSON parse failed:', e2.message);
-      console.error('[CM] Raw slice (400 chars):', cleaned.slice(first, first + 400));
-      return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.' });
+      console.error('[CM] JSON.parse failed:', e2.message);
+      console.error('[CM] JSON string (first 500):', jsonStr.slice(0, 500));
+      return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.', raw: jsonStr.slice(0, 300) });
     }
   }
 
