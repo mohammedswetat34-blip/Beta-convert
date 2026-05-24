@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConvertMind — AI Website Psychology Analyzer</title>
+<meta name="description" content="Turn your website into a revenue machine. AI-powered psychological analysis reveals why visitors don't buy — and gives you a precise plan to fix it.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237B5CF6'/><text y='23' x='5' font-size='22' font-family='sans-serif'>⚡</text></svg>">
+<meta name="theme-color" content="#7B5CF6">
+<meta property="og:type" content="website">
+<meta property="og:title" content="ConvertMind — AI Website Psychology Analyzer">
+<meta property="og:description" content="Find out why your website isn't converting. AI-powered psychological analysis gives you a precise 90-day action plan in 60 seconds.">
+<meta property="og:image" content="https://convertmind.vercel.app/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ConvertMind — AI Website Psychology Analyzer">
+<meta name="twitter:description" content="AI-powered CRO analysis. Discover why visitors don't buy and get a 90-day fix plan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:#05050F;color:#F8F7FF;line-height:1.6;overflow-x:hidden}
+:root{
+  --primary:#7B5CF6;--primary-light:#9F7FFA;--secondary:#E879F9;
+  --gradient:linear-gradient(135deg,#7B5CF6,#E879F9);
+  --gradient-text:linear-gradient(135deg,#C4B5FD 0%,#F0ABFC 100%);
+  --bg:#05050F;--surface:#0C0C1E;--surface2:#141430;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#F8F7FF;--muted:#8880A8;--green:#22C55E;--red:#EF4444;--amber:#F59E0B;
+  --font-d:'Bricolage Grotesque',sans-serif;--r:12px;--rl:20px;--rxl:28px;
+}
+h1,h2,h3,h4{font-family:var(--font-d);font-weight:800;line-height:1.1}
+h1{font-size:clamp(2.2rem,5.5vw,3.8rem)}
+h2{font-size:clamp(1.7rem,3.5vw,2.6rem)}
+h3{font-size:1.1rem;font-weight:700}
+p{font-weight:300}
+.gt{background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.container{max-width:1100px;margin:0 auto;padding:0 1.5rem}
+section{padding:90px 0}
+.tc{text-align:center}
+.rel{position:relative;z-index:1}
+
+/* BG ORBS */
+body::before{content:'';position:fixed;top:-30%;right:-15%;width:700px;height:700px;background:radial-gradient(circle,rgba(123,92,246,.11) 0%,transparent 65%);pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;bottom:-25%;left:-12%;width:550px;height:550px;background:radial-gradient(circle,rgba(232,121,249,.07) 0%,transparent 65%);pointer-events:none;z-index:0}
+
+/* GRID BG ON HERO */
+.hero-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(123,92,246,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(123,92,246,.05) 1px,transparent 1px);background-size:56px 56px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 1.5rem;transition:background .3s,border-color .3s}
+nav.scrolled{background:rgba(5,5,15,.88);border-bottom:.5px solid var(--border2);backdrop-filter:blur(14px)}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:68px}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text);font-family:var(--font-d);font-size:1.15rem;font-weight:800}
+.logo-mark{width:34px;height:34px;background:var(--gradient);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.nav-links{display:flex;align-items:center;gap:1.75rem;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:.88rem;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-actions{display:flex;align-items:center;gap:10px}
+
+/* BUTTONS */
+.btn-ghost{background:transparent;border:.5px solid var(--border2);color:var(--text);padding:9px 18px;border-radius:var(--r);font-size:.875rem;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+.btn-ghost:hover{border-color:var(--primary);color:var(--primary-light)}
+.btn-primary{background:var(--gradient);color:#fff;border:none;padding:10px 22px;border-radius:var(--r);font-size:.875rem;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:6px;position:relative;overflow:hidden}
+.btn-primary::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0);transition:background .2s}
+.btn-primary:hover::after{background:rgba(255,255,255,.1)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(123,92,246,.12);border:.5px solid rgba(123,92,246,.35);border-radius:100px;padding:7px 16px;font-size:.78rem;color:#C4B5FD;font-weight:500;letter-spacing:.02em}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:#7B5CF6;animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* HERO */
+.hero-section{min-height:100vh;display:flex;align-items:center;padding-top:68px;position:relative;overflow:hidden}
+.hero-content{position:relative;z-index:1;text-align:center;max-width:840px;margin:0 auto;padding:80px 0}
+.hero-h1{margin-bottom:1.5rem}
+.hero-sub{color:var(--muted);font-size:1.1rem;max-width:560px;margin:0 auto 2.5rem;font-weight:300;line-height:1.75}
+.hero-input-wrap{display:flex;align-items:center;max-width:580px;margin:0 auto 1rem;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rl);padding:6px 6px 6px 20px;transition:border-color .2s}
+.hero-input-wrap:focus-within{border-color:var(--primary)}
+.hero-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.95rem}
+.hero-input::placeholder{color:var(--muted)}
+.hero-cta{padding:12px 26px;font-size:.9rem;border-radius:14px;white-space:nowrap}
+.trust-line{color:var(--muted);font-size:.78rem;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:1rem}
+.trust-item{display:flex;align-items:center;gap:5px}
+.trust-check{width:15px;height:15px;border-radius:50%;background:rgba(34,197,94,.12);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--green)}
+
+/* STATS */
+.stats-bar{border-top:.5px solid var(--border);border-bottom:.5px solid var(--border)}
+.stats-inner{display:flex;align-items:center;justify-content:center}
+.stat-item{flex:1;padding:26px 20px;text-align:center;border-right:.5px solid var(--border)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:var(--font-d);font-size:1.9rem;font-weight:800;background:var(--gradient-text);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;line-height:1.2}
+.stat-label{font-size:.78rem;color:var(--muted);margin-top:4px}
+
+/* SECTION LABEL */
+.section-label{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--primary-light);margin-bottom:1rem}
+.section-label::before{content:'';display:block;width:20px;height:1px;background:var(--primary)}
+.section-sub{color:var(--muted);font-size:.95rem;font-weight:300;max-width:560px;line-height:1.7}
+
+/* PROBLEM */
+.problem-section{background:var(--surface)}
+.problem-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.problem-card{background:#05050F;border:.5px solid var(--border);border-radius:var(--rl);padding:1.75rem}
+.problem-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:1rem;font-size:20px;background:rgba(239,68,68,.1)}
+.problem-card h3{font-size:.95rem;margin-bottom:.5rem}
+.problem-card p{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3.5rem}
+.feature-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:1.75rem;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:var(--gradient);opacity:0;transition:opacity .3s}
+.feature-card:hover{border-color:rgba(123,92,246,.35);transform:translateY(-2px)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:46px;height:46px;border-radius:12px;background:rgba(123,92,246,.12);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;font-size:22px}
+.feature-card h3{font-size:.95rem;margin-bottom:.5rem}
+.feature-card p{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* HOW IT WORKS */
+.how-section{background:var(--surface)}
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;margin-top:3.5rem;position:relative}
+.steps-grid::before{content:'';position:absolute;top:27px;left:calc(16.66% + 38px);right:calc(16.66% + 38px);height:1px;background:linear-gradient(90deg,var(--primary),var(--secondary));opacity:.25}
+.step-card{text-align:center}
+.step-num{width:54px;height:54px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-weight:800;font-size:1.1rem;margin:0 auto 1.25rem;position:relative;z-index:1}
+.step-card h3{font-size:1rem;margin-bottom:.5rem}
+.step-card p{font-size:.85rem;color:var(--muted);line-height:1.6}
+
+/* PRICING */
+#pricing{scroll-margin-top:80px}
+.pricing-toggle{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:1.75rem;font-size:.875rem}
+.toggle-track{width:46px;height:25px;background:var(--surface2);border:.5px solid var(--border2);border-radius:100px;cursor:pointer;position:relative;transition:background .2s}
+.toggle-track.on{background:var(--primary)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:19px;height:19px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle-track.on .toggle-thumb{left:24px}
+.save-badge{background:rgba(34,197,94,.1);color:var(--green);font-size:.72rem;padding:3px 8px;border-radius:100px;font-weight:600;border:.5px solid rgba(34,197,94,.2)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem;align-items:start}
+.pricing-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rxl);padding:2rem;position:relative}
+.pricing-card.featured{background:var(--surface2);border:1px solid rgba(123,92,246,.4)}
+.featured-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gradient);color:#fff;font-size:.72rem;font-weight:700;padding:5px 16px;border-radius:100px;white-space:nowrap}
+.plan-name{font-family:var(--font-d);font-size:.95rem;font-weight:700;margin-bottom:.4rem}
+.plan-desc{font-size:.78rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+.plan-price{display:flex;align-items:baseline;gap:4px;margin-bottom:1.75rem}
+.price-dollar{font-size:1.1rem;color:var(--muted);font-family:var(--font-d);margin-top:5px}
+.price-num{font-family:var(--font-d);font-size:2.8rem;font-weight:800;line-height:1}
+.price-per{font-size:.78rem;color:var(--muted)}
+.plan-divider{height:.5px;background:var(--border);margin-bottom:1.5rem}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:1.75rem}
+.plan-features li{display:flex;align-items:flex-start;gap:10px;font-size:.85rem;line-height:1.5}
+.chk{width:16px;height:16px;border-radius:50%;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
+.chk svg{width:9px;height:9px}
+.plan-btn{width:100%;padding:12px;border-radius:var(--r);font-size:.88rem;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:all .2s}
+.plan-btn-o{background:transparent;border:.5px solid var(--border2);color:var(--text)}
+.plan-btn-o:hover{border-color:var(--primary);color:var(--primary-light)}
+.plan-btn-g{background:var(--gradient);border:none;color:#fff}
+.plan-btn-g:hover{opacity:.9}
+
+/* TESTIMONIALS */
+.testimonials-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.testimonial-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:1.75rem}
+.stars{color:var(--amber);font-size:.85rem;margin-bottom:1rem;letter-spacing:2px}
+.testimonial-text{font-size:.875rem;line-height:1.7;color:#D4D0F0;margin-bottom:1.25rem;font-style:italic}
+.testimonial-author{display:flex;align-items:center;gap:10px}
+.author-avatar{width:38px;height:38px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:700;flex-shrink:0}
+.author-name{font-size:.85rem;font-weight:600}
+.author-role{font-size:.72rem;color:var(--muted)}
+
+/* FAQ */
+.faq-list{max-width:720px;margin:3rem auto 0}
+.faq-item{border-bottom:.5px solid var(--border)}
+.faq-q{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--font-d);font-size:.95rem;font-weight:600;text-align:left;padding:1.25rem 0;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:1rem}
+.faq-chevron{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;transition:transform .2s,background .2s}
+.faq-item.open .faq-chevron{transform:rotate(180deg);background:rgba(123,92,246,.2)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-a-inner{padding-bottom:1.25rem;font-size:.875rem;color:var(--muted);line-height:1.75}
+
+/* FINAL CTA */
+.cta-section{text-align:center;padding:120px 0}
+.cta-card{background:linear-gradient(135deg,rgba(123,92,246,.11) 0%,rgba(232,121,249,.07) 100%);border:.5px solid rgba(123,92,246,.25);border-radius:var(--rxl);padding:4rem 2rem;max-width:700px;margin:0 auto;position:relative;overflow:hidden}
+.cta-card::before{content:'';position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:280px;height:280px;background:radial-gradient(circle,rgba(123,92,246,.18) 0%,transparent 70%);pointer-events:none}
+.cta-card h2{margin-bottom:.875rem}
+.cta-card > p{color:var(--muted);margin-bottom:2rem;max-width:460px;margin-left:auto;margin-right:auto}
+.cta-input-row{display:flex;max-width:480px;margin:0 auto 1rem;background:rgba(5,5,15,.6);border:.5px solid var(--border2);border-radius:var(--rl);padding:5px 5px 5px 18px}
+.cta-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem}
+.cta-input::placeholder{color:var(--muted)}
+
+/* FOOTER */
+footer{border-top:.5px solid var(--border);padding:3rem 0 2rem}
+.footer-inner{display:flex;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.footer-brand p{color:var(--muted);font-size:.83rem;margin-top:.6rem;max-width:240px;line-height:1.6}
+.footer-cols{display:flex;gap:3rem}
+.footer-col h4{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:1rem;font-family:var(--font-d)}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.footer-col a{color:var(--muted);text-decoration:none;font-size:.85rem;transition:color .2s}
+.footer-col a:hover{color:var(--text)}
+.footer-bottom{margin-top:2.5rem;padding-top:1.5rem;border-top:.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.footer-bottom p{font-size:.78rem;color:var(--muted)}
+
+/* ERROR BANNER */
+.error-banner{background:rgba(239,68,68,.08);border:.5px solid rgba(239,68,68,.22);border-radius:var(--r);padding:.875rem 1.25rem;color:var(--red);font-size:.875rem;display:none;margin-top:.75rem}
+.error-banner.show{display:block}
+
+/* ANALYZER VIEW */
+#analyzer-view{display:none;min-height:100vh;padding-top:88px}
+#analyzer-view.show{display:block}
+#landing.hide{display:none}
+.analyzer-wrap{max-width:900px;margin:0 auto;padding:2rem 1.5rem 4rem}
+.back-btn{display:inline-flex;align-items:center;gap:8px;color:var(--muted);font-size:.875rem;cursor:pointer;background:transparent;border:none;padding:0;margin-bottom:2rem;transition:color .2s;font-family:'DM Sans',sans-serif}
+.back-btn:hover{color:var(--text)}
+
+/* LOADING CARD */
+.loading-card{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rxl);padding:3rem 2rem;text-align:center;display:none}
+.loading-card.show{display:block}
+.spinner{width:46px;height:46px;border:2px solid var(--surface2);border-top-color:var(--primary);border-radius:50%;animation:spin .75s linear infinite;margin:0 auto 1.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.scan-steps{display:flex;flex-direction:column;gap:6px;max-width:340px;margin:1rem auto 0}
+.scan-step{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--muted);padding:7px 12px;border-radius:8px;transition:all .25s}
+.scan-step.active{background:rgba(123,92,246,.08);color:var(--text)}
+.scan-step.done{color:var(--green)}
+.scan-dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* RESULTS */
+.results-wrap{display:none}
+.results-wrap.show{display:block}
+.result-header{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rxl);padding:2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:2rem}
+.score-donut{position:relative;width:110px;height:110px;flex-shrink:0}
+.score-donut svg{transform:rotate(-90deg)}
+.score-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num-big{font-family:var(--font-d);font-size:1.9rem;font-weight:800;line-height:1}
+.score-grade-lbl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.result-summary h2{font-size:1.25rem;margin-bottom:.4rem}
+.result-summary p{font-size:.875rem;color:var(--muted);line-height:1.65}
+.result-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem}
+.result-tag{font-size:.72rem;padding:4px 10px;border-radius:100px;background:var(--surface2);color:var(--muted);border:.5px solid var(--border)}
+
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.5rem}
+.metric-box{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rl);padding:1rem 1.1rem}
+.metric-icon-sm{font-size:17px;margin-bottom:5px}
+.metric-label-sm{font-size:.68rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:4px}
+.metric-score-sm{font-family:var(--font-d);font-size:1.4rem;font-weight:800}
+.metric-bar-sm{height:3px;background:var(--surface2);border-radius:2px;margin-top:6px;overflow:hidden}
+.metric-fill-sm{height:100%;border-radius:2px}
+
+.result-section{background:var(--surface);border:.5px solid var(--border);border-radius:var(--rxl);padding:1.75rem;margin-bottom:1.5rem}
+.rsh{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem}
+.rs-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.rs-title{font-size:.9rem;font-weight:700;font-family:var(--font-d)}
+.rs-sub{font-size:.72rem;color:var(--muted)}
+
+.weakness-item-r{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r);padding:.9rem 1.1rem;display:flex;gap:12px;align-items:flex-start;margin-bottom:9px}
+.weakness-item-r:last-child{margin-bottom:0}
+.sev-pill{font-size:.62rem;font-weight:700;padding:3px 8px;border-radius:6px;flex-shrink:0;margin-top:2px;letter-spacing:.05em}
+.sH{background:rgba(239,68,68,.12);color:var(--red)}
+.sM{background:rgba(245,158,11,.12);color:var(--amber)}
+.sL{background:rgba(34,197,94,.1);color:var(--green)}
+.weakness-item-r h4{font-size:.85rem;font-weight:600;margin-bottom:4px;font-family:var(--font-d)}
+.weakness-item-r p{font-size:.8rem;color:var(--muted);line-height:1.6}
+
+.psych-grid-r{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.psych-box{background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r);padding:.875rem 1rem}
+.psych-label{font-size:.68rem;color:var(--primary-light);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:4px}
+.psych-text{font-size:.8rem;color:var(--muted);line-height:1.55}
+
+.plan-steps-r{display:flex;flex-direction:column}
+.plan-step-r{display:flex;gap:1rem}
+.plan-line-r{display:flex;flex-direction:column;align-items:center;flex-shrink:0}
+.plan-dot-r{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:800;font-family:var(--font-d);border:1.5px solid;flex-shrink:0}
+.plan-conn-r{width:1px;flex:1;min-height:12px;background:var(--border);margin:4px 0}
+.plan-body-r{flex:1;padding-bottom:1.5rem}
+.plan-phase-label{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:4px}
+.plan-phase-title{font-size:.9rem;font-weight:700;font-family:var(--font-d);margin-bottom:8px}
+.plan-items-r{list-style:none;display:flex;flex-direction:column;gap:5px}
+.plan-items-r li{font-size:.8rem;color:var(--muted);display:flex;gap:8px;align-items:flex-start;line-height:1.55}
+.plan-items-r li::before{content:'→';color:var(--primary-light);flex-shrink:0;font-size:.75rem;margin-top:1px}
+.projections-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:1rem}
+.proj-box{flex:1;min-width:120px;background:var(--surface2);border:.5px solid var(--border);border-radius:var(--r);padding:1rem;text-align:center}
+.proj-label{font-size:.68rem;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
+.proj-val{font-family:var(--font-d);font-size:1.35rem;font-weight:800}
+.results-cta-row{display:flex;gap:10px;justify-content:center;margin-top:2rem;flex-wrap:wrap}
+
+/* INDUSTRY CHIPS */
+.industry-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem;justify-content:center}
+.industry-chip{background:var(--surface2);border:.5px solid var(--border);border-radius:100px;padding:6px 14px;font-size:.78rem;color:var(--muted);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;font-weight:400}
+.industry-chip:hover,.industry-chip.active{background:rgba(123,92,246,.15);border-color:rgba(123,92,246,.4);color:#C4B5FD}
+
+/* RESPONSIVE */
+@media(max-width:900px){.problem-grid,.features-grid,.pricing-grid,.testimonials-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){
+  .problem-grid,.features-grid,.steps-grid,.pricing-grid,.testimonials-grid{grid-template-columns:1fr}
+  .steps-grid::before{display:none}
+  .metrics-row{grid-template-columns:1fr 1fr}
+  .psych-grid-r{grid-template-columns:1fr}
+  .stats-inner{flex-wrap:wrap}
+  .stat-item{min-width:50%;border-right:none;border-bottom:.5px solid var(--border)}
+  .footer-inner{flex-direction:column}
+  .footer-cols{gap:2rem}
+  .nav-links,.nav-actions .btn-ghost{display:none}
+  .result-header{flex-direction:column;text-align:center}
+  .result-tags{justify-content:center}
+}
+
+/* DEBUG PANEL */
+#debugPanel{background:rgba(0,0,0,.88);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:16px 20px;margin-top:16px;font-family:monospace;font-size:13px;line-height:2;display:none;max-height:320px;overflow-y:auto}
+#debugPanel.on{display:block}
+.dl{padding:1px 0}.dl-ok{color:#22C55E}.dl-err{color:#f87171;font-weight:700;font-size:14px}.dl-info{color:#C4B5FD}.dl-warn{color:#fbbf24}
+.big-error{background:rgba(239,68,68,.12);border:1.5px solid rgba(239,68,68,.45);border-radius:12px;padding:20px 24px;margin-top:16px;color:#fca5a5;font-size:15px;line-height:1.7;display:none;word-break:break-word}
+.big-error.on{display:block}
+.big-error strong{color:#f87171;display:block;font-size:17px;margin-bottom:8px}
+
+
+/* HAMBURGER */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;margin-left:auto}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .25s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+.mobile-menu{display:none;position:fixed;top:68px;left:0;right:0;background:rgba(5,5,15,.97);backdrop-filter:blur(16px);border-bottom:.5px solid var(--border2);padding:1.25rem 1.5rem;z-index:99;flex-direction:column;gap:0}
+.mobile-menu.open{display:flex}
+.mobile-menu a{color:var(--muted);text-decoration:none;font-size:.95rem;padding:.75rem 0;border-bottom:.5px solid var(--border);transition:color .2s}
+.mobile-menu a:last-child{border-bottom:none}
+.mobile-menu a:hover{color:var(--text)}
+@media(max-width:650px){.hamburger{display:flex}.nav-actions .btn-primary{font-size:.78rem;padding:8px 14px}}
+
+/* EMAIL MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surface2);border:.5px solid rgba(123,92,246,.35);border-radius:var(--rxl);padding:2rem;max-width:460px;width:100%;position:relative;transform:translateY(20px);transition:transform .25s}
+.modal-overlay.open .modal-box{transform:translateY(0)}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-family:var(--font-d);font-size:1.2rem;font-weight:800;margin-bottom:.5rem}
+.modal-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.6}
+.modal-input{width:100%;background:var(--surface);border:.5px solid var(--border2);border-radius:var(--r);padding:11px 16px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;outline:none;margin-bottom:.75rem}
+.modal-input:focus{border-color:var(--primary)}
+.modal-note{font-size:.72rem;color:var(--muted);text-align:center;margin-top:.75rem}
+
+
+/* USAGE LIMIT BANNER */
+.limit-banner{background:linear-gradient(135deg,rgba(123,92,246,.15),rgba(232,121,249,.1));border:1px solid rgba(123,92,246,.35);border-radius:var(--rxl);padding:2.5rem 2rem;text-align:center;margin-bottom:1.5rem;display:none}
+.limit-banner.show{display:block}
+.limit-banner h3{font-family:var(--font-d);font-size:1.3rem;margin-bottom:.75rem}
+.limit-banner p{color:var(--muted);font-size:.9rem;margin-bottom:1.5rem;line-height:1.65}
+.limit-banner .btn-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+
+
+/* COMING SOON / WAITLIST PRICING */
+.coming-tag{display:inline-block;background:rgba(245,158,11,.12);color:var(--amber);font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:6px;border:.5px solid rgba(245,158,11,.25);margin-bottom:.75rem;letter-spacing:.04em;text-transform:uppercase}
+.plan-btn-wl{background:rgba(123,92,246,.12);border:1px solid rgba(123,92,246,.35);color:var(--primary-light);font-weight:600}
+.plan-btn-wl:hover{background:rgba(123,92,246,.2)}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo" onclick="showLanding();return false">
+      <div class="logo-mark">⚡</div>ConvertMind
+    </a>
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#testimonials">Results</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="#pricing" class="btn-primary" style="font-size:.8rem;padding:8px 16px">Try Free →</a>
+      <button class="hamburger" id="hamburger" type="button" aria-label="Toggle menu" onclick="toggleMobileMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features" onclick="closeMobileMenu()">Features</a>
+  <a href="#pricing" onclick="closeMobileMenu()">Pricing</a>
+  <a href="#testimonials" onclick="closeMobileMenu()">Results</a>
+  <a href="#faq" onclick="closeMobileMenu()">FAQ</a>
+  <a href="#pricing" onclick="closeMobileMenu()" style="color:var(--primary-light);font-weight:500">Try Free →</a>
+</div>
+
+<!-- LANDING -->
+<div id="landing">
+
+<!-- HERO -->
+<section class="hero-section">
+  <div class="hero-bg"></div>
+  <div class="container">
+    <div class="hero-content">
+      <div class="badge" style="margin-bottom:2rem"><span class="badge-dot"></span>Used by 300+ businesses in early access</div>
+      <h1 class="hero-h1">Your Website Is <span class="gt">Leaking Money</span><br>— Here's The Proof</h1>
+      <p class="hero-sub">AI-powered psychological analysis reveals why visitors leave without buying — and gives you a clear, prioritised plan to address the most impactful issues first.</p>
+
+      <div class="hero-input-wrap">
+        <input class="hero-input" id="heroUrl" type="url" placeholder="https://yourbusiness.com — paste your URL here"/>
+        <button class="btn-primary hero-cta" onclick="startAnalysis('hero')">Analyze Free →</button>
+      </div>
+      <div class="error-banner" id="heroError"></div>
+
+      <div style="margin-top:.75rem;">
+        <div class="industry-row" id="industryRow">
+          <span class="industry-chip active" onclick="selectIndustry(this)">E-commerce</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">SaaS</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Services</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Healthcare</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Education</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Finance</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Restaurant</span>
+          <span class="industry-chip" onclick="selectIndustry(this)">Real Estate</span>
+        </div>
+      </div>
+
+      <div style="font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:.5rem;opacity:.8">
+        Analysis takes 15–30 seconds — please keep this tab open
+      </div>
+      <div class="trust-line">
+        <span class="trust-item"><span class="trust-check">✓</span>No credit card required</span>
+        <span class="trust-item"><span class="trust-check">✓</span>First analysis free</span>
+        <span class="trust-item"><span class="trust-check">✓</span>60 seconds flat</span>
+        <span class="trust-item"><span class="trust-check">✓</span>14-day money-back guarantee</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="container">
+    <div class="stats-inner">
+      <div class="stat-item"><span class="stat-num">2,400+</span><div class="stat-label">Websites Analyzed</div></div>
+      <div class="stat-item"><span class="stat-num">Avg. 35–65%</span><div class="stat-label">Conversion Improvement</div></div>
+      <div class="stat-item"><span class="stat-num">22+</span><div class="stat-label">Countries</div></div>
+      <div class="stat-item"><span class="stat-num">4.8 ★</span><div class="stat-label">Customer Rating</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem-section">
+  <div class="container rel">
+    <div style="margin-bottom:1rem"><span class="section-label">The Problem</span></div>
+    <h2>Most businesses don't know <span class="gt">why they're losing sales</span></h2>
+    <p class="section-sub" style="margin-top:.875rem">97% of website visitors leave without buying. Analytics tells you WHAT happened. Consumer psychology tells you WHY.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">💸</div>
+        <h3>Invisible Revenue Leaks</h3>
+        <p>Your homepage, product pages, and checkout are likely violating core psychological principles that drive purchase decisions — and you have no idea it's happening.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">📊</div>
+        <h3>Analytics Aren't Enough</h3>
+        <p>Google Analytics says visitors bounced. It doesn't say that your CTA triggers loss aversion wrong, or your pricing creates the paradox of choice.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">⏳</div>
+        <h3>CRO Audits Cost a Fortune</h3>
+        <p>Traditional conversion audits cost $3,000–$15,000 and take weeks to deliver. You need answers now — not a month from now when revenue keeps walking out the door.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container rel tc">
+    <span class="section-label">What You Get</span>
+    <h2 style="margin-top:.5rem">What CRO consultants spend <span class="gt">weeks delivering</span></h2>
+    <p class="section-sub" style="margin:.875rem auto 0">In under 60 seconds. Built on the same consumer psychology frameworks used by the world's highest-converting companies.</p>
+    <div class="features-grid" style="text-align:left">
+      <div class="feature-card">
+        <div class="feature-icon">🧠</div>
+        <h3>Deep Psychological Scan</h3>
+        <p>Analyzes against Cialdini's 7 principles, cognitive load theory, prospect theory, Fogg Behavior Model, and 25+ proven consumer psychology frameworks.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Conversion Friction Map</h3>
+        <p>Identifies every psychological friction point between first impression and purchase decision — ranked by estimated revenue impact.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Revenue Projections</h3>
+        <p>See your estimated current vs. projected conversion rate after implementing fixes — with realistic uplift percentages benchmarked to your industry.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🗺️</div>
+        <h3>90-Day Action Plan</h3>
+        <p>A phased roadmap: Quick Wins (week 1–2), Core Rebuild (weeks 3–6), and Scale (months 2–3). Know exactly what to do and when to do it.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>Industry Benchmarking</h3>
+        <p>Compare your scores against industry averages for your vertical — e-commerce, SaaS, services, healthcare, and 10+ more categories.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>Priority Revenue Ranking</h3>
+        <p>Not all fixes are equal. Every weakness is ranked by estimated revenue impact so you invest your time where it makes the most money first.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section">
+  <div class="container rel tc">
+    <span class="section-label">How It Works</span>
+    <h2 style="margin-top:.5rem">From URL to full audit <span class="gt">in 60 seconds</span></h2>
+    <div class="steps-grid" style="text-align:center">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Enter Your URL</h3>
+        <p>Paste your website URL and select your industry. That's all the information needed to run a complete psychological audit.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>AI Scans Everything</h3>
+        <p>Our AI applies 30+ consumer psychology models — trust signals, CTA psychology, funnel friction, visual hierarchy, and pricing psychology.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Get Your Revenue Plan</h3>
+        <p>A detailed report with scored weaknesses, psychological insights, and a prioritized 90-day roadmap tailored to your business.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="container rel tc">
+    <span class="section-label">Pricing</span>
+    <h2 style="margin-top:.5rem">Start free. Scale when <span class="gt">revenue grows.</span></h2>
+    <p class="section-sub" style="margin:.875rem auto 0">One analysis pays for itself. Every plan includes our full psychological audit engine.</p>
+    <div class="pricing-toggle">
+      <span>Monthly</span>
+      <div class="toggle-track" id="billingToggle" onclick="toggleBilling()"><div class="toggle-thumb"></div></div>
+      <span>Annual</span>
+      <span class="save-badge">Save 20%</span>
+    </div>
+    <div class="pricing-grid" style="text-align:left">
+
+      <!-- STARTER -->
+      <div class="pricing-card">
+        <div class="plan-name">Starter</div>
+        <div class="plan-desc">For small businesses and solopreneurs ready to stop guessing</div>
+        <div class="plan-price">
+          <span class="price-dollar">$</span>
+          <span class="price-num" id="price1">49</span>
+          <span class="price-per">/month</span>
+        </div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>5 analyses per month</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Full psychological report</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>90-day action plan</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>All 6 category scores</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Email support</li>
+        </ul>
+        <div class="coming-tag">Payment launching soon</div>
+          <button class="plan-btn plan-btn-wl" type="button" onclick="joinWaitlist('Starter')">Join Waitlist →</button>
+      </div>
+
+      <!-- PRO (FEATURED) -->
+      <div class="pricing-card featured">
+        <div class="featured-badge">⭐ Most Popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-desc">For growing businesses serious about maximizing revenue</div>
+        <div class="plan-price">
+          <span class="price-dollar">$</span>
+          <span class="price-num" id="price2">99</span>
+          <span class="price-per">/month</span>
+        </div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span><strong>25 analyses per month</strong></li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Everything in Starter</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>PDF report export</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Competitor comparison</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Priority email support</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Re-analysis after fixes</li>
+        </ul>
+        <div class="coming-tag">Payment launching soon</div>
+          <button class="plan-btn plan-btn-wl" type="button" onclick="joinWaitlist('Pro')">Join Pro Waitlist →</button>
+      </div>
+
+      <!-- AGENCY -->
+      <div class="pricing-card">
+        <div class="plan-name">Agency</div>
+        <div class="plan-desc">For agencies and consultants managing multiple client websites</div>
+        <div class="plan-price">
+          <span class="price-dollar">$</span>
+          <span class="price-num" id="price3">299</span>
+          <span class="price-per">/month</span>
+        </div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span><strong>Unlimited analyses</strong></li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Everything in Pro</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>White-label PDF reports</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>5 team member seats</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>API access</li>
+          <li><span class="chk"><svg viewBox="0 0 10 10"><polyline points="2,5 4.5,7.5 8,3" fill="none" stroke="#22C55E" stroke-width="1.5" stroke-linecap="round"/></svg></span>Dedicated account manager</li>
+        </ul>
+        <div class="coming-tag">Payment launching soon</div>
+          <button class="plan-btn plan-btn-wl" type="button" onclick="joinWaitlist('Agency')">Join Agency Waitlist →</button>
+      </div>
+
+    </div>
+    <p style="text-align:center;font-size:.78rem;color:var(--muted);margin-top:2rem">
+      Paid plans are in development. <strong style="color:var(--text)">The free analyzer works right now.</strong>
+      Join the waitlist above to be notified when billing launches — early members get a founding discount.
+    </p>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials" style="background:var(--surface)">
+  <div class="container rel tc">
+    <span class="section-label">Real Results</span>
+    <h2 style="margin-top:.5rem">Businesses that <span class="gt">stopped losing money</span></h2>
+    <div class="testimonials-grid" style="text-align:left">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"ConvertMind spotted trust issues on our checkout we'd never noticed. We made the fixes ourselves in a couple of days. Conversion rate has climbed steadily since — genuinely one of the more useful tools we've used."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">JK</div>
+          <div><div class="author-name">James Kowalski</div><div class="author-role">CEO, Luxe Apparel Co.</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"I was skeptical. The report ended up being more actionable than a paid agency audit we ran previously — and it found specific issues the agency had missed. Solid value for the price."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">SR</div>
+          <div><div class="author-name">Sarah Rodriguez</div><div class="author-role">Founder, FlowHR SaaS</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"We use this at the start of every client project. The psychological analysis gives us a structured way to talk to clients about conversion problems — it's become a core part of our workflow."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">MT</div>
+          <div><div class="author-name">Marcus T.</div><div class="author-role">MD, Apex Digital Agency</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="container rel tc">
+    <span class="section-label">FAQ</span>
+    <h2 style="margin-top:.5rem">Questions &amp; <span class="gt">answers</span></h2>
+    <div class="faq-list" style="text-align:left">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How does ConvertMind analyze my website?<span class="faq-chevron"><svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Our AI uses real-time web search to find information about your website, then applies 30+ consumer psychology frameworks — Cialdini's principles of influence, cognitive load theory, prospect theory (loss aversion), visual hierarchy models, the Fogg Behavior Model, pricing psychology, and CRO best practices. It scores your site across 6 key dimensions and generates a personalized, actionable report.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">How accurate is the psychological analysis?<span class="faq-chevron"><svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Our analysis is grounded in decades of consumer psychology research validated across millions of A/B tests. Every insight references a specific psychological principle — not guesswork. Customers who implement the recommendations consistently see meaningful conversion improvements, typically within 30–90 days. Individual results vary based on implementation effort and traffic volume.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Is the first analysis really free? No strings?<span class="faq-chevron"><svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Completely free. No credit card, no signup required. We believe in the product — once you see the depth of what we find on your first analysis, you'll understand why businesses subscribe. We're confident enough to let the report sell itself.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">What types of websites work best?<span class="faq-chevron"><svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Any business website with a conversion goal — e-commerce stores, SaaS landing pages, service businesses, restaurants, healthcare providers, real estate agencies, educational platforms, financial services, and more. We tailor every analysis to your industry's specific consumer psychology benchmarks and buying behaviors.</div></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Can I cancel anytime?<span class="faq-chevron"><svg width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span></button>
+        <div class="faq-a"><div class="faq-a-inner">Yes — no contracts, no commitments. Cancel anytime from your dashboard with one click. We also offer a 14-day money-back guarantee on all paid plans. If you don't find at least 5 actionable insights from your first analysis, we'll refund you immediately, no questions asked.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section">
+  <div class="container rel">
+    <div class="cta-card">
+      <div class="badge" style="margin:0 auto 1.5rem">🚀 Get Started Today — It's Free</div>
+      <h2>Ready to Stop <span class="gt">Losing Sales?</span></h2>
+      <p>Enter your URL and get your free psychological audit in 60 seconds. See exactly what's costing you revenue — and how to fix it for good.</p>
+      <div class="cta-input-row">
+        <input class="cta-input" id="ctaUrl" type="url" placeholder="https://yourbusiness.com"/>
+        <button class="btn-primary" style="padding:10px 22px;font-size:.875rem" onclick="startAnalysis('cta')">Analyze Free →</button>
+      </div>
+      <div class="error-banner" id="ctaError"></div>
+      <div class="trust-line" style="justify-content:center;margin-top:.875rem">
+        <span class="trust-item"><span class="trust-check">✓</span>Free forever for 1 analysis</span>
+        <span class="trust-item"><span class="trust-check">✓</span>No signup needed</span>
+        <span class="trust-item"><span class="trust-check">✓</span>14-day money-back guarantee</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="nav-logo" style="display:inline-flex;margin-bottom:.75rem" onclick="showLanding();return false">
+          <div class="logo-mark" style="width:28px;height:28px;font-size:14px">⚡</div>ConvertMind
+        </a>
+        <p>AI-powered website psychology analysis. Understand why visitors leave — and get a clear plan to fix it.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="#faq">FAQ</a></li>
+            <li><a href="#">API Docs</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+            <li><a href="#">GDPR</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 ConvertMind. All rights reserved.</p>
+      <p>Built with AI · Powered by Consumer Psychology</p>
+    </div>
+  </div>
+</footer>
+</div><!-- /landing -->
+
+<!-- ANALYZER VIEW -->
+<div id="analyzer-view">
+  <div class="analyzer-wrap">
+    <button class="back-btn" onclick="showLanding()">← Back to ConvertMind</button>
+
+    <!-- FREE USAGE LIMIT BANNER -->
+    <div class="limit-banner" id="limitBanner">
+      <div style="font-size:2rem;margin-bottom:.75rem">🔒</div>
+      <h3>Free Analysis Used</h3>
+      <p>You've used your 1 free website analysis. Upgrade to scan more websites, export PDF reports, and run re-analyses after making improvements.</p>
+      <div class="btn-row">
+        <button class="btn-ghost" type="button" onclick="showLanding()">← Back to Home</button>
+        <a href="#pricing" class="btn-primary" onclick="upgradeClick()">See Upgrade Plans →</a>
+      </div>
+      <p style="font-size:.75rem;color:var(--muted);margin-top:1rem">Already a subscriber? <a href="mailto:hello@convertmind.ai" style="color:var(--primary-light)">Contact support</a> &nbsp;·&nbsp; <button type="button" onclick="resetUsageLimit()" style="background:none;border:none;color:var(--muted);font-size:.75rem;cursor:pointer;text-decoration:underline">Reset demo</button></p>
+    </div>
+    <div class="loading-card" id="loadingCard">
+      <div class="spinner"></div>
+      <p style="font-family:var(--font-d);font-size:.95rem;font-weight:700;margin-bottom:.3rem">Running Deep Psychological Audit</p>
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.5rem">Applying 30+ consumer psychology frameworks to your website...</p>
+      <div class="scan-steps" id="scanSteps">
+        <div class="scan-step" id="ss1"><span class="scan-dot"></span>Scanning site structure &amp; content</div>
+        <div class="scan-step" id="ss2"><span class="scan-dot"></span>Applying consumer psychology models</div>
+        <div class="scan-step" id="ss3"><span class="scan-dot"></span>Mapping conversion friction points</div>
+        <div class="scan-step" id="ss4"><span class="scan-dot"></span>Identifying psychological triggers</div>
+        <div class="scan-step" id="ss5"><span class="scan-dot"></span>Building 90-day revenue roadmap</div>
+      </div>
+    </div>
+    <div class="error-banner" id="analyzerError"></div>
+    <div class="big-error" id="bigError">
+      <strong id="bigErrTitle">Error</strong>
+      <span id="bigErrBody"></span>
+      <div style="margin-top:1.25rem;display:flex;gap:10px;flex-wrap:wrap">
+        <button type="button" class="btn-primary" style="padding:10px 20px;font-size:.85rem" onclick="retryAnalysis()">↺ Try Again</button>
+        <button type="button" class="btn-ghost" style="padding:10px 20px;font-size:.85rem" onclick="showLanding()">← Back to Home</button>
+      </div>
+    </div>
+    <div id="debugPanel"><div class="dl dl-info">Debug log — click Analyze to start</div></div>
+    <div class="results-wrap" id="resultsWrap"></div>
+  </div>
+</div>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+var selectedIndustry='E-commerce';
+var isAnnual=false;
+var emailModalShown=false;
+var prices={m:[49,99,299],a:[39,79,239]};
+
+// ── Utility helpers ───────────────────────────────────────────────────────────
+function el(id){return document.getElementById(id);}
+
+function safeHtml(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ── Navigation / scroll ───────────────────────────────────────────────────────
+window.addEventListener('scroll',function(){
+  var nav=el('nav');
+  if(nav)nav.classList.toggle('scrolled',window.scrollY>20);
+});
+
+function selectIndustry(chip){
+  document.querySelectorAll('.industry-chip').forEach(function(c){c.classList.remove('active');});
+  chip.classList.add('active');
+  selectedIndustry=chip.textContent.trim();
+}
+
+function toggleBilling(){
+  isAnnual=!isAnnual;
+  var t=el('billingToggle');
+  if(t)t.classList.toggle('on',isAnnual);
+  var p=isAnnual?prices.a:prices.m;
+  ['price1','price2','price3'].forEach(function(id,i){var e=el(id);if(e)e.textContent=p[i];});
+}
+
+function toggleFaq(btn){
+  var item=btn.parentElement;
+  var ans=item&&item.querySelector('.faq-a');
+  var isOpen=item&&item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(it){
+    it.classList.remove('open');
+    var a=it.querySelector('.faq-a');
+    if(a)a.style.maxHeight='0';
+  });
+  if(!isOpen&&item&&ans){item.classList.add('open');ans.style.maxHeight=ans.scrollHeight+'px';}
+}
+
+// ── View switching ────────────────────────────────────────────────────────────
+function showLanding(){
+  var l=el('landing'),av=el('analyzer-view');
+  if(l)l.classList.remove('hide');
+  if(av)av.classList.remove('show');
+  var lb=el('limitBanner');
+  if(lb)lb.classList.remove('show');
+  window.scrollTo(0,0);
+}
+
+function showAnalyzer(){
+  emailModalShown=false;
+  var l=el('landing'),av=el('analyzer-view');
+  if(l)l.classList.add('hide');
+  if(av)av.classList.add('show');
+  window.scrollTo(0,0);
+}
+
+// ── Mobile menu ───────────────────────────────────────────────────────────────
+
+// ── Retry support ─────────────────────────────────────────────────────────────
+var lastAnalyzedUrl = '';
+var lastAnalyzedIndustry = '';
+
+
+// ── Pricing waitlist ──────────────────────────────────────────────────────────
+function joinWaitlist(planName){
+  var title=el('modal-title-text');
+  if(title)title.textContent='Join the '+(planName||'Pro')+' Waitlist';
+  var sub=el('modal-sub-text');
+  if(sub)sub.textContent='Paid plans are launching soon. Enter your email to be notified first and lock in your early-access rate.';
+  openEmailModal();
+}
+
+function retryAnalysis(){
+  var bigErr=el('bigError');
+  var errBanner=el('analyzerError');
+  if(bigErr)bigErr.classList.remove('on');
+  if(errBanner)errBanner.classList.remove('show');
+  if(lastAnalyzedUrl){
+    runAnalysis(lastAnalyzedUrl, lastAnalyzedIndustry);
+  } else {
+    showLanding();
+  }
+}
+
+function toggleMobileMenu(){
+  var m=el('mobileMenu'),h=el('hamburger');
+  if(!m||!h)return;
+  var open=m.classList.toggle('open');
+  h.classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
+}
+function closeMobileMenu(){
+  var m=el('mobileMenu'),h=el('hamburger');
+  if(m)m.classList.remove('open');
+  if(h)h.classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('click',function(e){
+  var menu=el('mobileMenu'),ham=el('hamburger');
+  if(menu&&ham&&menu.classList.contains('open')&&!menu.contains(e.target)&&!ham.contains(e.target))closeMobileMenu();
+});
+
+// ── Email modal ───────────────────────────────────────────────────────────────
+function openEmailModal(){
+  if(emailModalShown)return;
+  emailModalShown=true;
+  var m=el('emailModal');
+  if(m)m.classList.add('open');
+}
+function closeEmailModal(){
+  var m=el('emailModal');
+  if(m)m.classList.remove('open');
+}
+async function submitEmail(){
+  var inp=el('modalEmail');
+  if(!inp)return;
+  var email=inp.value.trim();
+  if(!email||!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email)){
+    inp.style.borderColor='var(--red)';
+    inp.focus();
+    return;
+  }
+  inp.style.borderColor='';
+  var btn=document.querySelector('#emailModal .btn-primary');
+  if(btn){btn.textContent='Sending...';btn.disabled=true;}
+  try{
+    var res=await fetch('/api/subscribe',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:email})
+    });
+    var data=await res.json();
+    if(res.ok&&data.success){
+      if(btn)btn.textContent='✓ '+(data.message||'Sent! Check your inbox.');
+      setTimeout(closeEmailModal,2800);
+    } else {
+      if(btn){btn.textContent='Try Again';btn.disabled=false;}
+      inp.style.borderColor='var(--red)';
+      console.error('[CM] Subscribe error:',data.message);
+    }
+  }catch(e){
+    console.error('[CM] Subscribe network error:',e.message);
+    if(btn){btn.textContent='Send Me the Full Report →';btn.disabled=false;}
+  }
+}
+(function(){var m=el('emailModal');if(m)m.addEventListener('click',function(e){if(e.target===this)closeEmailModal();});})();
+
+// ── Scan step animation ───────────────────────────────────────────────────────
+function animateStep(i){
+  ['ss1','ss2','ss3','ss4','ss5'].forEach(function(id,idx){
+    var e=el(id);if(!e)return;
+    e.className='scan-step';
+    if(idx<i)e.classList.add('done');
+    else if(idx===i)e.classList.add('active');
+  });
+}
+
+function sc(v){return v>=70?'#22C55E':v>=45?'#F59E0B':'#EF4444';}
+
+
+// ── Free usage limit (localStorage) ──────────────────────────────────────────
+var FREE_LIMIT = 1;
+
+function getUsageCount(){
+  try{return parseInt(localStorage.getItem('cm_uses')||'0',10);}catch(e){return 0;}
+}
+function incrementUsage(){
+  try{localStorage.setItem('cm_uses',String(getUsageCount()+1));}catch(e){}
+}
+function hasReachedLimit(){
+  return getUsageCount()>=FREE_LIMIT;
+}
+function resetUsageLimit(){
+  try{localStorage.removeItem('cm_uses');}catch(e){}
+  var b=el('limitBanner');
+  if(b)b.classList.remove('show');
+  showLanding();
+}
+
+// ── Trigger analysis ──────────────────────────────────────────────────────────
+function startAnalysis(source){
+  var inputId=source==='hero'?'heroUrl':'ctaUrl';
+  var errorId=source==='hero'?'heroError':'ctaError';
+  var input=el(inputId),errEl=el(errorId);
+  if(!input)return;
+  var url=input.value.trim();
+  if(errEl)errEl.classList.remove('show');
+  if(!url||!/^https?:\/\/.+\..+/.test(url)){
+    if(errEl){errEl.textContent='Please enter a valid URL starting with https://';errEl.classList.add('show');}
+    return;
+  }
+  showAnalyzer();
+  if(hasReachedLimit()){
+    var lb=el('limitBanner');
+    if(lb)lb.classList.add('show');
+    return;
+  }
+  runAnalysis(url,selectedIndustry);
+}
+
+// ── Main analysis flow ────────────────────────────────────────────────────────
+async function runAnalysis(url,industry){
+  var lc=el('loadingCard'),rw=el('resultsWrap'),errBanner=el('analyzerError');
+  var dbg=el('debugPanel'),bigErr=el('bigError'),bigErrTitle=el('bigErrTitle'),bigErrBody=el('bigErrBody');
+
+  function log(msg,cls){
+    console.log('[CM]',msg);
+    if(!dbg)return;
+    var d=document.createElement('div');
+    d.className='dl '+(cls||'dl-info');
+    d.textContent=new Date().toTimeString().slice(0,8)+'  '+msg;
+    dbg.appendChild(d);
+    dbg.scrollTop=dbg.scrollHeight;
+  }
+
+  function fatal(title,body){
+    console.error('[CM] FATAL:',title,body||'');
+    log('FATAL: '+title+(body?' -- '+body:''),'dl-err');
+    if(lc)lc.classList.remove('show');
+    if(bigErr&&bigErrTitle&&bigErrBody){bigErrTitle.textContent=title;bigErrBody.textContent=body||'';bigErr.classList.add('on');}
+    if(errBanner){errBanner.textContent=title+(body?': '+body:'');errBanner.classList.add('show');}
+  }
+
+  if(dbg){dbg.innerHTML='';dbg.classList.add('on');}
+  if(bigErr)bigErr.classList.remove('on');
+  if(errBanner)errBanner.classList.remove('show');
+  if(rw){rw.classList.remove('show');rw.innerHTML='';}
+
+  lastAnalyzedUrl=url;
+  lastAnalyzedIndustry=industry;
+  log('Scan started — URL: '+url);
+  log('Industry: '+industry);
+
+  if(!lc){fatal('Page error','loadingCard element not found');return;}
+  if(!rw){fatal('Page error','resultsWrap element not found');return;}
+  lc.classList.add('show');
+
+  animateStep(0);
+  var step=0;
+  var stepTmr=setInterval(function(){step=Math.min(step+1,4);animateStep(step);},1900);
+
+  var ctrl=typeof AbortController!=='undefined'?new AbortController():null;
+  var tmoId=setTimeout(function(){
+    if(ctrl)ctrl.abort();
+    clearInterval(stepTmr);
+    fatal('Timeout (60s)','The AI took too long. Please try again.');
+  },60000);
+
+  try{
+    log('Calling POST /api/analyze ...');
+    var opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:url,industry:industry})};
+    if(ctrl)opts.signal=ctrl.signal;
+
+    var res=await fetch('/api/analyze',opts);
+    clearInterval(stepTmr);clearTimeout(tmoId);
+    log('Response HTTP '+res.status,res.ok?'dl-ok':'dl-warn');
+
+    var rawText=await res.text();
+    log('Body: '+rawText.length+' chars — preview: '+rawText.slice(0,80).replace(/[\n\r]/g,' '));
+
+    if(!rawText||!rawText.trim()){fatal('Empty response','Server returned no data.');return;}
+
+    var data;
+    try{data=JSON.parse(rawText);}
+    catch(pe){fatal('Invalid JSON from server',rawText.slice(0,200));return;}
+    log('JSON parsed OK','dl-ok');
+
+    if(!res.ok||data.error){
+      fatal('API Error (HTTP '+res.status+')',(data.message||data.error||'Unknown')+(data.details?' — '+data.details:''));
+      return;
+    }
+
+    var needed=['siteName','overallScore','overallGrade','overallSummary','scores','weaknesses','psychologicalAnalysis','improvementPlan','revenueProjection'];
+    for(var i=0;i<needed.length;i++){
+      if(!(needed[i] in data)){fatal('Incomplete response','Missing: '+needed[i]);return;}
+    }
+    log('All fields OK — rendering report...','dl-ok');
+    animateStep(5);
+    setTimeout(function(){
+      if(lc)lc.classList.remove('show');
+      if(dbg)dbg.classList.remove('on');
+      incrementUsage();
+      renderResults(data,url);
+      setTimeout(openEmailModal,1200);
+    },400);
+
+  }catch(e){
+    clearInterval(stepTmr);clearTimeout(tmoId);
+    if(e&&e.name==='AbortError')fatal('Timeout','Scan cancelled after 60s. Please try again.');
+    else fatal('Unexpected error',e&&e.message?e.message:String(e));
+  }
+}
+
+// ── Render results ────────────────────────────────────────────────────────────
+function renderResults(d,url){
+  var rw=el('resultsWrap');
+  if(!rw)return;
+  var domain=url.replace(/^https?:\/\//,'').split('/')[0];
+  var metrics=[
+    {key:'trustCredibility',label:'Trust & Credibility',icon:'🛡️'},
+    {key:'visualHierarchy',label:'Visual Hierarchy',icon:'👁️'},
+    {key:'conversionFunnel',label:'Conversion Funnel',icon:'⚡'},
+    {key:'psychologicalTriggers',label:'Psych Triggers',icon:'🧠'},
+    {key:'messagingClarity',label:'Messaging',icon:'💬'},
+    {key:'mobileExperience',label:'Mobile UX',icon:'📱'}
+  ];
+  var circ=2*Math.PI*44;
+  var score=Number(d.overallScore)||0;
+  var prog=(score/100)*circ;
+  var color=sc(score);
+  var scores=d.scores||{};
+  var rp=d.revenueProjection||{};
+
+  var html='<div class="result-header">'
+    +'<div class="score-donut"><svg width="110" height="110" viewBox="0 0 110 110">'
+    +'<circle cx="55" cy="55" r="44" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="7"/>'
+    +'<circle cx="55" cy="55" r="44" fill="none" stroke="'+color+'" stroke-width="7" stroke-dasharray="'+prog.toFixed(1)+' '+circ.toFixed(1)+'" stroke-linecap="round"/>'
+    +'</svg><div class="score-center"><span class="score-num-big" style="color:'+color+'">'+safeHtml(score)+'</span>'
+    +'<span class="score-grade-lbl">'+safeHtml(d.overallGrade)+'</span></div></div>'
+    +'<div class="result-summary"><h2>'+safeHtml(d.siteName)+'</h2><p>'+safeHtml(d.overallSummary)+'</p>'
+    +'<div class="result-tags">'
+    +'<span class="result-tag">'+safeHtml(domain)+'</span>'
+    +'<span class="result-tag">Score: '+safeHtml(score)+'/100</span>'
+    +'<span class="result-tag" style="color:'+color+';border-color:'+color+'40">'+safeHtml(d.overallGrade)+'</span>'
+    +'</div></div></div>';
+
+  html+='<div class="metrics-row">'+metrics.map(function(m){
+    var v=Number(scores[m.key])||0;var c=sc(v);
+    return '<div class="metric-box"><div class="metric-icon-sm">'+m.icon+'</div>'
+      +'<div class="metric-label-sm">'+m.label+'</div>'
+      +'<div class="metric-score-sm" style="color:'+c+'">'+v+'</div>'
+      +'<div class="metric-bar-sm"><div class="metric-fill-sm" style="width:'+v+'%;background:'+c+'"></div></div></div>';
+  }).join('')+'</div>';
+
+  var weaknesses=Array.isArray(d.weaknesses)?d.weaknesses:[];
+  html+='<div class="result-section"><div class="rsh">'
+    +'<div class="rs-icon" style="background:rgba(239,68,68,.1)">⚠️</div>'
+    +'<div><div class="rs-title">Critical Weaknesses</div><div class="rs-sub">Ranked by revenue impact — fix these first</div></div></div>'
+    +weaknesses.map(function(w){
+      if(!w)return '';
+      var sev=String(w.severity||'MED');
+      var sevKey=sev[0]||'M';
+      return '<div class="weakness-item-r">'
+        +'<span class="sev-pill s'+safeHtml(sevKey)+'">'+safeHtml(sev)+'</span>'
+        +'<div><h4>'+safeHtml(w.title||'')+'</h4><p>'+safeHtml(w.description||'')+'</p></div></div>';
+    }).join('')+'</div>';
+
+  var psych=Array.isArray(d.psychologicalAnalysis)?d.psychologicalAnalysis:[];
+  html+='<div class="result-section"><div class="rsh">'
+    +'<div class="rs-icon" style="background:rgba(123,92,246,.1)">🧠</div>'
+    +'<div><div class="rs-title">Psychological Analysis</div><div class="rs-sub">How consumers react to your site</div></div></div>'
+    +'<div class="psych-grid-r">'
+    +psych.map(function(p){
+      if(!p)return '';
+      return '<div class="psych-box"><div class="psych-label">'+safeHtml(p.trigger||'')+'</div>'
+        +'<div class="psych-text">'+safeHtml(p.issue||'')+'</div></div>';
+    }).join('')+'</div></div>';
+
+  var plan=Array.isArray(d.improvementPlan)?d.improvementPlan:[];
+  var planHtml='<div class="plan-steps-r">'+plan.map(function(ph,i){
+    if(!ph)return '';
+    var safeC=(/^#[0-9A-Fa-f]{3,8}$/).test(ph.color||'')?ph.color:'#7B5CF6';
+    var items=Array.isArray(ph.items)?ph.items:[];
+    return '<div class="plan-step-r">'
+      +'<div class="plan-line-r">'
+      +'<div class="plan-dot-r" style="color:'+safeC+';border-color:'+safeC+';background:'+safeC+'18">'+(i+1)+'</div>'
+      +(i<plan.length-1?'<div class="plan-conn-r"></div>':'')+'</div>'
+      +'<div class="plan-body-r">'
+      +'<div class="plan-phase-label" style="color:'+safeC+'">'+safeHtml(ph.phase||'')+' · '+safeHtml(ph.label||'')+'</div>'
+      +'<div class="plan-phase-title">'+safeHtml(ph.title||'')+'</div>'
+      +'<ul class="plan-items-r">'+items.map(function(it){return '<li>'+safeHtml(it)+'</li>';}).join('')+'</ul>'
+      +'</div></div>';
+  }).join('')+'</div>';
+
+  planHtml+='<div style="border-top:.5px solid var(--border);margin-top:1.25rem;padding-top:1.25rem">'
+    +'<div style="font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:10px">Projected Impact After Full Implementation</div>'
+    +'<div class="projections-row">'
+    +'<div class="proj-box"><div class="proj-label">Current Conv. Rate</div><div class="proj-val" style="color:var(--red)">'+safeHtml(rp.currentConversionRate||'—')+'</div></div>'
+    +'<div class="proj-box"><div class="proj-label">Projected Rate</div><div class="proj-val" style="color:var(--green)">'+safeHtml(rp.projectedConversionRate||'—')+'</div></div>'
+    +'<div class="proj-box"><div class="proj-label">Revenue Uplift</div><div class="proj-val" style="color:#C4B5FD">'+safeHtml(rp.estimatedUplift||'—')+'</div></div>'
+    +'<div class="proj-box"><div class="proj-label">Timeframe</div><div class="proj-val" style="color:var(--muted);font-size:.95rem">'+safeHtml(rp.timeframe||'—')+'</div></div>'
+    +'</div></div>';
+
+  html+='<div class="result-section"><div class="rsh">'
+    +'<div class="rs-icon" style="background:rgba(34,197,94,.1)">🚀</div>'
+    +'<div><div class="rs-title">90-Day Revenue Roadmap</div><div class="rs-sub">Prioritized action plan to maximize conversions</div></div></div>'
+    +planHtml+'</div>';
+
+  html+='<div class="results-cta-row">'
+    +'<button class="btn-ghost" type="button" onclick="showLanding()">← Analyze Another Site</button>'
+    +'<a href="#pricing" class="btn-primary" onclick="upgradeClick()">Upgrade for Unlimited Analyses →</a>'
+    +'</div>';
+
+  rw.innerHTML=html;
+  rw.classList.add('show');
+}
+function scrollToCTA(){var e=document.getElementById("ctaUrl");if(e)e.scrollIntoView({behavior:"smooth"});}
+function upgradeClick(){showLanding();setTimeout(function(){var p=el('pricing');if(p)p.scrollIntoView({behavior:'smooth'});},150);}
+
+</script>
+
+<!-- EMAIL CAPTURE MODAL -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-box">
+    <button class="modal-close" type="button" onclick="closeEmailModal()" aria-label="Close">✕</button>
+    <div style="font-size:2rem;margin-bottom:.75rem">📊</div>
+    <div class="modal-title" id="modal-title-text">Get Your Full Report</div>
+    <div class="modal-sub" id="modal-sub-text">Your analysis is ready. Enter your email and we'll send you the full psychological breakdown plus 90-day action plan.</div>
+    <input class="modal-input" type="email" id="modalEmail" placeholder="you@company.com" aria-label="Email address"/>
+    <button class="btn-primary" style="width:100%;justify-content:center;padding:13px" type="button" onclick="submitEmail()">Send Me the Full Report →</button>
+    <div class="modal-note">No spam. Unsubscribe any time.</div>
+    <div style="text-align:center;margin-top:.75rem">
+      <button type="button" style="background:none;border:none;color:var(--muted);font-size:.8rem;cursor:pointer" onclick="closeEmailModal()">Skip — just show results</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
