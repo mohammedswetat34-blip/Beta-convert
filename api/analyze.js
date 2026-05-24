@@ -68,7 +68,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 4000, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -207,18 +207,32 @@ module.exports = async function handler(req, res) {
   const rawText = (apiResponse.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
   if (!rawText) return res.status(500).json({ error: true, message: 'AI returned empty response. Please try again.' });
 
-  const first = rawText.indexOf('{');
-  const last  = rawText.lastIndexOf('}');
+  // Strip markdown fences that Claude sometimes adds despite instructions
+  let cleaned = rawText
+    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '')
+    .replace(/\s*```\s*$/i, '').trim();
+
+  const first = cleaned.indexOf('{');
+  const last  = cleaned.lastIndexOf('}');
   if (first === -1 || last < first) {
-    console.error('[CM] No JSON in response:', rawText.slice(0, 200));
+    console.error('[CM] No JSON found. Raw (300 chars):', rawText.slice(0, 300));
     return res.status(500).json({ error: true, message: 'AI returned unexpected format. Please try again.' });
   }
 
   let analysis;
-  try { analysis = JSON.parse(rawText.slice(first, last + 1)); }
-  catch (e) {
-    console.error('[CM] JSON parse failed:', e.message);
-    return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.' });
+  try {
+    analysis = JSON.parse(cleaned.slice(first, last + 1));
+  } catch (e) {
+    // Second attempt: sometimes Claude adds a trailing comma before } — strip it
+    const fixed = cleaned.slice(first, last + 1).replace(/,\s*([}\]])/g, '$1');
+    try {
+      analysis = JSON.parse(fixed);
+      console.log('[CM] JSON fixed by removing trailing commas');
+    } catch (e2) {
+      console.error('[CM] JSON parse failed:', e2.message);
+      console.error('[CM] Raw slice (400 chars):', cleaned.slice(first, first + 400));
+      return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.' });
+    }
   }
 
   // ── Validate fields ────────────────────────────────────────────────────────
