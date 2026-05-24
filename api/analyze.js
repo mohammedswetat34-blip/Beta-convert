@@ -17,7 +17,7 @@ function isRateLimited(ip) {
   const now = Date.now();
   const entry = rateLimits.get(ip) || { count: 0, resetAt: now + RATE_WINDOW };
   if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + RATE_WINDOW; }
-  entry.count += 1;v
+  entry.count += 1;
   rateLimits.set(ip, entry);
   return entry.count > RATE_MAX;
 }
