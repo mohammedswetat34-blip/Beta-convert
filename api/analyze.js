@@ -69,7 +69,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -93,7 +93,7 @@ function callAnthropic(apiKey, model, prompt) {
       });
     });
     // 8 second timeout — keeps well under Vercel hobby 10s limit
-    req.setTimeout(8000, () => { req.destroy(); reject(Object.assign(new Error('Anthropic timed out (8s)'), { status: 408 })); });
+    req.setTimeout(9000, () => { req.destroy(); reject(Object.assign(new Error('Anthropic timed out (9s) — try upgrading to Vercel Pro for 30s timeout'), { status: 408 })); });
     req.on('error', e => reject(Object.assign(new Error('Network error: ' + e.message), { status: 503 })));
     req.write(bodyStr);
     req.end();
@@ -103,18 +103,18 @@ function callAnthropic(apiKey, model, prompt) {
 // ── Prompt ────────────────────────────────────────────────────────────────────
 function buildPrompt(url, industry) {
   const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-  return `You are a senior CRO expert and consumer psychologist. Analyse ${url} (${domain}) for the ${industry} industry.
+  return `You are a CRO expert and consumer psychologist. Analyse ${url} for the ${industry} industry.
 
-Apply: Cialdini 7 Principles, Cognitive Load Theory, Prospect Theory/Loss Aversion, Visual Hierarchy, Fogg Behavior Model, Pricing Psychology, CRO best practices.
+Apply: Cialdini 7 Principles, Cognitive Load, Loss Aversion, Visual Hierarchy, Fogg Behavior Model.
 
-Return ONLY a valid JSON object starting with { and ending with }. No markdown. No extra text.
+Return ONLY valid JSON starting with { and ending with }. No markdown. No extra text.
 
-{"siteName":"brand","overallScore":54,"overallGrade":"C+","overallSummary":"2-3 sentence honest assessment","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"title","description":"psychological principle + specific observation"},{"severity":"HIGH","title":"title","description":"..."},{"severity":"MED","title":"title","description":"..."},{"severity":"MED","title":"title","description":"..."},{"severity":"LOW","title":"title","description":"..."}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"specific finding for ${domain}"},{"trigger":"Scarcity / Urgency","issue":"..."},{"trigger":"Authority Signals","issue":"..."},{"trigger":"Loss Aversion","issue":"..."},{"trigger":"Cognitive Load","issue":"..."},{"trigger":"Reciprocity","issue":"..."}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate Fixes","items":["action","action","action","action"]},{"phase":"WEEK 3-6","label":"Core Rebuild","color":"#7B5CF6","title":"Psychological Architecture","items":["action","action","action","action"]},{"phase":"MONTH 2-3","label":"Scale","color":"#E879F9","title":"Growth","items":["action","action","action"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.1%","estimatedUplift":"+121%","timeframe":"90 days"}}
+{"siteName":"brand","overallScore":54,"overallGrade":"C+","overallSummary":"2 honest sentences","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"title","description":"principle + finding"},{"severity":"HIGH","title":"title","description":"finding"},{"severity":"MED","title":"title","description":"finding"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"specific finding for ${domain}"},{"trigger":"Authority Signals","issue":"finding"},{"trigger":"Loss Aversion","issue":"finding"},{"trigger":"Cognitive Load","issue":"finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate Fixes","items":["action","action","action"]},{"phase":"MONTH 1","label":"Core Changes","color":"#7B5CF6","title":"Strategic Improvements","items":["action","action","action"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.1%","estimatedUplift":"+121%","timeframe":"90 days"}}
 
-Be specific to ${domain}. Name real pages/elements. Name psychological principles. Return PURE JSON only.`;
+Be specific to ${domain}. Name real pages and UI elements. Name psychological principles.`;
 }
 
-const MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
+const MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6'];
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
@@ -182,7 +182,7 @@ module.exports = async function handler(req, res) {
       console.error(`[CM] ${model} failed: ${e.status} ${e.message}`);
       if (e.status === 401) return res.status(500).json({ error: true, message: 'API key invalid. Check ANTHROPIC_API_KEY in Vercel settings.' });
       if (e.status === 429) return res.status(429).json({ error: true, message: 'AI rate limit reached. Please wait a minute and try again.' });
-      if (e.status !== 404 && e.status !== 408) break; // unknown error — stop retrying
+      if (e.status !== 404) break; // stop retrying on timeout (408) or unknown errors
     }
   }
 
