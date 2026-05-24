@@ -1,28 +1,27 @@
-// api/analyze.js  —  Vercel Serverless Function
+// api/analyze.js  —  Vercel Serverless Function (Pro plan — 30s timeout)
 // Zero npm dependencies. Pure Node.js built-ins only.
 'use strict';
 
 const https = require('https');
 
-// ── Simple in-memory cache (URL → {result, ts}) ──────────────────────────────
+// ── In-memory cache (URL → {result, ts}) ─────────────────────────────────────
 const cache = new Map();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
-// ── Simple rate limiter (ip → {count, resetAt}) ───────────────────────────────
+// ── In-memory rate limiter (ip → {count, resetAt}) ───────────────────────────
 const rateLimits = new Map();
-const RATE_MAX = 15;          // requests per window
-const RATE_WINDOW_MS = 3600000; // 1 hour window
+const RATE_MAX      = 15;
+const RATE_WINDOW   = 3600000; // 1 hour
 
 function isRateLimited(ip) {
   const now = Date.now();
-  const entry = rateLimits.get(ip) || { count: 0, resetAt: now + RATE_WINDOW_MS };
-  if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + RATE_WINDOW_MS; }
+  const entry = rateLimits.get(ip) || { count: 0, resetAt: now + RATE_WINDOW };
+  if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + RATE_WINDOW; }
   entry.count += 1;
   rateLimits.set(ip, entry);
   return entry.count > RATE_MAX;
 }
 
-// Prune stale entries when maps get large (serverless-safe — no setInterval)
 function pruneIfNeeded() {
   const now = Date.now();
   if (cache.size > 200) {
@@ -69,7 +68,7 @@ function sanitise(s, n) {
 // ── Anthropic API call ────────────────────────────────────────────────────────
 function callAnthropic(apiKey, model, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 800, messages: [{ role: 'user', content: prompt }] });
+    const bodyStr = JSON.stringify({ model, max_tokens: 2000, messages: [{ role: 'user', content: prompt }] });
     const options = {
       hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
       headers: {
@@ -92,29 +91,39 @@ function callAnthropic(apiKey, model, prompt) {
         reject(Object.assign(new Error(msg), { status: res.statusCode }));
       });
     });
-    // 8 second timeout — keeps well under Vercel hobby 10s limit
-    req.setTimeout(9000, () => { req.destroy(); reject(Object.assign(new Error('Anthropic timed out (9s) — try upgrading to Vercel Pro for 30s timeout'), { status: 408 })); });
+    // 25s timeout — safe for Vercel Pro 30s limit
+    req.setTimeout(25000, () => { req.destroy(); reject(Object.assign(new Error('Anthropic timed out (25s)'), { status: 408 })); });
     req.on('error', e => reject(Object.assign(new Error('Network error: ' + e.message), { status: 503 })));
     req.write(bodyStr);
     req.end();
   });
 }
 
-// ── Prompt ────────────────────────────────────────────────────────────────────
+// ── Full quality prompt ───────────────────────────────────────────────────────
 function buildPrompt(url, industry) {
   const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-  return `You are a CRO expert and consumer psychologist. Analyse ${url} for the ${industry} industry.
+  return `You are a world-class conversion rate optimisation (CRO) expert and consumer psychologist.
 
-Apply: Cialdini 7 Principles, Cognitive Load, Loss Aversion, Visual Hierarchy, Fogg Behavior Model.
+Analyse this website: ${url} (${domain}) for the ${industry} industry.
 
-Return ONLY valid JSON starting with { and ending with }. No markdown. No extra text.
+Apply these frameworks rigorously:
+1. Cialdini's 7 Principles of Influence (reciprocity, commitment, social proof, authority, liking, scarcity, unity)
+2. Cognitive Load Theory — Miller's Law, information architecture
+3. Prospect Theory & Loss Aversion (Kahneman & Tversky)
+4. Visual Hierarchy & F/Z-Pattern Reading
+5. Fogg Behavior Model (motivation × ability × prompt)
+6. Pricing psychology & Paradox of Choice
+7. CRO best practices — above-fold CTAs, trust signals, clarity, urgency
 
-{"siteName":"brand","overallScore":54,"overallGrade":"C+","overallSummary":"2 honest sentences","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"title","description":"principle + finding"},{"severity":"HIGH","title":"title","description":"finding"},{"severity":"MED","title":"title","description":"finding"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"specific finding for ${domain}"},{"trigger":"Authority Signals","issue":"finding"},{"trigger":"Loss Aversion","issue":"finding"},{"trigger":"Cognitive Load","issue":"finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate Fixes","items":["action","action","action"]},{"phase":"MONTH 1","label":"Core Changes","color":"#7B5CF6","title":"Strategic Improvements","items":["action","action","action"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.1%","estimatedUplift":"+121%","timeframe":"90 days"}}
+Return ONLY a valid JSON object starting with { and ending with }. No markdown. No extra text.
 
-Be specific to ${domain}. Name real pages and UI elements. Name psychological principles.`;
+{"siteName":"brand name","overallScore":54,"overallGrade":"C+","overallSummary":"2-3 sentence honest assessment of conversion performance","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"weakness title","description":"Name the psychological principle and explain the specific problem on this site"},{"severity":"HIGH","title":"title","description":"explanation"},{"severity":"MED","title":"title","description":"explanation"},{"severity":"MED","title":"title","description":"explanation"},{"severity":"LOW","title":"title","description":"explanation"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"specific finding for ${domain}"},{"trigger":"Scarcity / Urgency","issue":"specific finding"},{"trigger":"Authority Signals","issue":"specific finding"},{"trigger":"Loss Aversion","issue":"specific finding"},{"trigger":"Cognitive Load","issue":"specific finding"},{"trigger":"Reciprocity","issue":"specific finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate High-Impact Fixes","items":["concrete action 1","concrete action 2","concrete action 3","concrete action 4"]},{"phase":"WEEK 3-6","label":"Core Rebuild","color":"#7B5CF6","title":"Psychological Architecture","items":["concrete action 1","concrete action 2","concrete action 3","concrete action 4"]},{"phase":"MONTH 2-3","label":"Scale & Test","color":"#E879F9","title":"Revenue Optimisation & Growth","items":["concrete action 1","concrete action 2","concrete action 3"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.8%","estimatedUplift":"+171%","timeframe":"90 days"}}
+
+Critical: be specific to ${domain} — reference real pages, real UI elements, real copy you know about this site. Name psychological principles in every weakness description. Return PURE JSON only.`;
 }
 
-const MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6'];
+// ── Model order: sonnet first (best quality), haiku as fallback ───────────────
+const MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
@@ -133,7 +142,7 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: true, message: 'Use POST.' });
 
-  // ── Rate limiting ───────────────────────────────────────────────────────────
+  // ── Rate limiting ─────────────────────────────────────────────────────────
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
   if (isRateLimited(ip)) {
     console.warn(`[CM] Rate limited: ${ip}`);
@@ -141,7 +150,8 @@ module.exports = async function handler(req, res) {
   }
 
   pruneIfNeeded();
-  // ── Parse & validate ────────────────────────────────────────────────────────
+
+  // ── Parse & validate ───────────────────────────────────────────────────────
   let body;
   try { body = await readBody(req); }
   catch (e) { return res.status(400).json({ error: true, message: e.message }); }
@@ -149,27 +159,27 @@ module.exports = async function handler(req, res) {
   const urlResult = validateUrl(body.url);
   if (!urlResult.ok) return res.status(400).json({ error: true, message: urlResult.error });
 
-  const safeUrl = urlResult.url;
+  const safeUrl      = urlResult.url;
   const safeIndustry = sanitise(body.industry, 60) || 'General Business';
   console.log(`[CM] Analysing: ${safeUrl} | ${safeIndustry} | IP: ${ip}`);
 
-  // ── Cache lookup ────────────────────────────────────────────────────────────
+  // ── Cache lookup ───────────────────────────────────────────────────────────
   const cacheKey = `${safeUrl}::${safeIndustry}`;
-  const cached = cache.get(cacheKey);
+  const cached   = cache.get(cacheKey);
   if (cached && (Date.now() - cached.ts < CACHE_TTL_MS)) {
     console.log(`[CM] Cache hit for ${safeUrl}`);
     return res.status(200).json(cached.result);
   }
 
-  // ── API key ─────────────────────────────────────────────────────────────────
+  // ── API key ────────────────────────────────────────────────────────────────
   const apiKey = process.env.ANTHROPIC_API_KEY;
   console.log('[CM] API key present:', apiKey ? `YES (${apiKey.length} chars)` : 'NO');
-  if (!apiKey) return res.status(500).json({ error: true, message: 'Server not configured. Contact support.', details: 'ANTHROPIC_API_KEY missing from Vercel env vars.' });
+  if (!apiKey) return res.status(500).json({ error: true, message: 'Server not configured. Contact support.', details: 'ANTHROPIC_API_KEY missing.' });
 
-  // ── Call Anthropic with model fallback ──────────────────────────────────────
+  // ── Call Anthropic with model fallback ─────────────────────────────────────
   const prompt = buildPrompt(safeUrl, safeIndustry);
   let apiResponse = null;
-  let lastErr = null;
+  let lastErr     = null;
 
   for (const model of MODELS) {
     console.log(`[CM] Trying: ${model}`);
@@ -182,7 +192,7 @@ module.exports = async function handler(req, res) {
       console.error(`[CM] ${model} failed: ${e.status} ${e.message}`);
       if (e.status === 401) return res.status(500).json({ error: true, message: 'API key invalid. Check ANTHROPIC_API_KEY in Vercel settings.' });
       if (e.status === 429) return res.status(429).json({ error: true, message: 'AI rate limit reached. Please wait a minute and try again.' });
-      if (e.status !== 404) break; // stop retrying on timeout (408) or unknown errors
+      if (e.status !== 404 && e.status !== 408) break;
     }
   }
 
@@ -193,7 +203,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // ── Extract & parse JSON ────────────────────────────────────────────────────
+  // ── Extract & parse JSON ───────────────────────────────────────────────────
   const rawText = (apiResponse.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
   if (!rawText) return res.status(500).json({ error: true, message: 'AI returned empty response. Please try again.' });
 
@@ -201,23 +211,23 @@ module.exports = async function handler(req, res) {
   const last  = rawText.lastIndexOf('}');
   if (first === -1 || last < first) {
     console.error('[CM] No JSON in response:', rawText.slice(0, 200));
-    return res.status(500).json({ error: true, message: 'AI returned unexpected format.', raw: rawText.slice(0, 200) });
+    return res.status(500).json({ error: true, message: 'AI returned unexpected format. Please try again.' });
   }
 
   let analysis;
   try { analysis = JSON.parse(rawText.slice(first, last + 1)); }
   catch (e) {
     console.error('[CM] JSON parse failed:', e.message);
-    return res.status(500).json({ error: true, message: 'Failed to parse AI response.', raw: rawText.slice(first, first + 200) });
+    return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.' });
   }
 
-  // ── Validate fields ─────────────────────────────────────────────────────────
+  // ── Validate fields ────────────────────────────────────────────────────────
   const required = ['siteName','overallScore','overallGrade','overallSummary','scores','weaknesses','psychologicalAnalysis','improvementPlan','revenueProjection'];
   for (const f of required) {
     if (!(f in analysis)) return res.status(500).json({ error: true, message: `Incomplete analysis (missing: ${f}). Please try again.` });
   }
 
-  // ── Cache & return ──────────────────────────────────────────────────────────
+  // ── Cache & return ─────────────────────────────────────────────────────────
   cache.set(cacheKey, { result: analysis, ts: Date.now() });
   console.log(`[CM] Done. Cached result for ${safeUrl}`);
   return res.status(200).json(analysis);
