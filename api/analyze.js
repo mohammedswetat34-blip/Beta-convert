@@ -114,7 +114,7 @@ Return ONLY a valid JSON object starting with { and ending with }. No markdown. 
 Be specific to ${domain}. Name real pages/elements. Name psychological principles. Return PURE JSON only.`;
 }
 
-const MODELS = ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022', 'claude-3-haiku-20240307'];
+const MODELS = ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'];
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
