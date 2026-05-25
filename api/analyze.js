@@ -1,255 +1,256 @@
-// api/analyze.js  —  Vercel Serverless Function (Pro plan — 30s timeout)
-// Zero npm dependencies. Pure Node.js built-ins only.
-'use strict';
+// api/analyze.js — ConvertIQ v2 · Vercel Serverless Function
+// POST /api/analyze
+// API key is read ONLY from process.env — never exposed to the browser.
 
 const https = require('https');
 
-// ── In-memory cache (URL → {result, ts}) ─────────────────────────────────────
-const cache = new Map();
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-// ── In-memory rate limiter (ip → {count, resetAt}) ───────────────────────────
-const rateLimits = new Map();
-const RATE_MAX      = 15;
-const RATE_WINDOW   = 3600000; // 1 hour
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const entry = rateLimits.get(ip) || { count: 0, resetAt: now + RATE_WINDOW };
-  if (now > entry.resetAt) { entry.count = 0; entry.resetAt = now + RATE_WINDOW; }
-  entry.count += 1;
-  rateLimits.set(ip, entry);
-  return entry.count > RATE_MAX;
-}
-
-function pruneIfNeeded() {
-  const now = Date.now();
-  if (cache.size > 200) {
-    for (const [k, v] of cache.entries()) { if (now - v.ts > CACHE_TTL_MS) cache.delete(k); }
+module.exports = async function handler(req, res) {
+  // ── CORS ──────────────────────────────────────────────────────────
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed', message: 'Use POST.' });
   }
-  if (rateLimits.size > 500) {
-    for (const [k, v] of rateLimits.entries()) { if (now > v.resetAt) rateLimits.delete(k); }
-  }
-}
 
-// ── Body reader ───────────────────────────────────────────────────────────────
-function readBody(req) {
-  return new Promise((resolve, reject) => {
-    if (req.body !== undefined) {
-      if (typeof req.body === 'object') return resolve(req.body);
-      if (typeof req.body === 'string') {
-        try { return resolve(JSON.parse(req.body)); } catch { return reject(new Error('Body is not valid JSON')); }
-      }
-    }
-    let raw = '';
-    req.setEncoding('utf8');
-    req.on('data', chunk => { raw += chunk; if (raw.length > 20000) { req.destroy(); reject(new Error('Request too large')); } });
-    req.on('end', () => { try { resolve(JSON.parse(raw || '{}')); } catch { reject(new Error('Body is not valid JSON')); } });
-    req.on('error', reject);
+  // ── API key guard ──────────────────────────────────────────────────
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    console.error('[ConvertIQ] ANTHROPIC_API_KEY not set');
+    return res.status(500).json({
+      error: 'Server configuration error',
+      message: 'ANTHROPIC_API_KEY is not configured in Vercel environment variables.',
+    });
+  }
+
+  // ── Parse body ─────────────────────────────────────────────────────
+  let body = req.body;
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); }
+    catch { return res.status(400).json({ error: 'Invalid JSON', message: 'Request body must be valid JSON.' }); }
+  }
+
+  const { url } = body || {};
+  if (!url || typeof url !== 'string' || !url.trim()) {
+    return res.status(400).json({ error: 'Missing URL', message: 'Please provide a website URL to analyze.' });
+  }
+
+  // ── Normalise & validate URL ───────────────────────────────────────
+  let parsedUrl;
+  try {
+    const raw = url.trim();
+    parsedUrl = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw);
+  } catch {
+    return res.status(400).json({
+      error: 'Invalid URL',
+      message: 'The URL you entered is not valid. Example: https://stripe.com',
+    });
+  }
+
+  const cleanUrl = parsedUrl.href;
+  const domain   = parsedUrl.hostname.replace(/^www\./, '');
+  const path     = parsedUrl.pathname;
+
+  // ── Build prompt ───────────────────────────────────────────────────
+  const prompt = buildPrompt(cleanUrl, domain, path);
+
+  // ── Call Anthropic ─────────────────────────────────────────────────
+  let anthropicResponse;
+  try {
+    anthropicResponse = await callAnthropic(apiKey, prompt);
+  } catch (err) {
+    console.error('[ConvertIQ] Anthropic API error:', err.message);
+    return res.status(502).json({
+      error: 'AI service error',
+      message: 'The AI analysis service is temporarily unavailable. Please try again in a moment.',
+    });
+  }
+
+  const content = anthropicResponse?.content?.[0]?.text;
+  if (!content) {
+    console.error('[ConvertIQ] Empty Anthropic response');
+    return res.status(502).json({ error: 'Empty AI response', message: 'The AI returned an empty response. Please try again.' });
+  }
+
+  // ── Parse JSON ─────────────────────────────────────────────────────
+  let analysis;
+  try {
+    const cleaned = content
+      .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '')
+      .trim();
+    analysis = JSON.parse(cleaned);
+  } catch {
+    console.error('[ConvertIQ] JSON parse failed. Raw (500):', content.substring(0, 500));
+    return res.status(502).json({
+      error: 'Invalid AI response format',
+      message: 'The AI returned an unexpected format. Please try again.',
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    url: cleanUrl,
+    analysis,
+    analyzedAt: new Date().toISOString(),
   });
+};
+
+// ─────────────────────────────────────────────────────────────────────
+// PROMPT
+// ─────────────────────────────────────────────────────────────────────
+function buildPrompt(cleanUrl, domain, path) {
+  return `You are a world-class senior conversion rate optimization (CRO) consultant. You have 15+ years of hands-on experience personally auditing thousands of websites — from seed-stage startups to Fortune 500 brands. Your audits are known in the industry for being ruthlessly honest, deeply specific, and immediately actionable. Clients pay $5,000–$25,000 for your reports.
+
+You are now auditing: ${cleanUrl}
+Domain: ${domain}
+Path: ${path}
+
+Your task: Produce a senior-level CRO audit that feels like a consultant personally reviewed this specific site — not generic AI-generated advice. Every observation must reference the specific domain, inferred industry, likely audience, and realistic business model. If you can infer what the site sells, who it sells to, and how it makes money — use that context aggressively.
+
+IMPORTANT RULES:
+1. Never write generic advice that could apply to any site ("Add more testimonials", "Improve your CTA"). Always be specific: reference the domain, the likely page type, the probable user journey, and the specific section being discussed.
+2. Do not mention that you cannot visit the URL. Reason authoritatively from the domain name, URL structure, TLD, path, and industry knowledge.
+3. Scores should be realistic. Most sites score 42–68 overall. Only exceptional sites score above 75. Sites with obvious trust/CRO problems score below 50.
+4. The psychology notes must be real psychological principles (cognitive load, social proof, loss aversion, anchoring, etc.) — not marketing buzzwords.
+5. Business impact estimates should be specific and credible (e.g., "likely contributing to a 35–50% bounce rate in mobile sessions" — not "may hurt conversions").
+6. The executive summary must read like the opening paragraph of a $10,000 consulting report — no fluff, specific observations, honest assessment.
+
+Return ONLY a raw JSON object — no markdown, no code fences, no commentary before or after:
+
+{
+  "overallScore": <integer 0–100>,
+  "grade": "<A+|A|A-|B+|B|B-|C+|C|C-|D|F>",
+  "industry": "<detected vertical, e.g. 'B2B SaaS', 'E-commerce', 'Marketing Agency', 'Healthcare', 'FinTech', 'Creator Tools', 'Marketplace'>",
+  "pageType": "<e.g. 'Homepage', 'SaaS Landing Page', 'Product Page', 'Lead Gen Page', 'Portfolio'>",
+  "urgencyLevel": "<Critical|High|Moderate|Low>",
+
+  "executiveSummary": "<4–5 sentences. This must read like the opening of a senior consulting report. Reference the domain by name, describe what the business appears to do, name 2–3 specific conversion problems visible from structure/copy/trust analysis, and give an honest headline verdict. No generic AI language. No 'overall the site does a decent job'. Be direct and specific.>",
+
+  "highestImpactFix": "<The single most important change — must be site-specific, not generic. Something a CRO expert would flag in the first 5 minutes. Reference a specific section or element.>",
+
+  "scores": {
+    "firstImpression":  <integer 0–100>,
+    "valueProposition": <integer 0–100>,
+    "callToAction":     <integer 0–100>,
+    "trustSignals":     <integer 0–100>,
+    "mobileExperience": <integer 0–100>,
+    "pageSpeed":        <integer 0–100>,
+    "copyClarity":      <integer 0–100>,
+    "visualHierarchy":  <integer 0–100>
+  },
+
+  "scoreLabels": {
+    "firstImpression":  "<1 sentence explaining this specific score — what does or doesn't work about first impression on this specific site>",
+    "valueProposition": "<1 sentence — site-specific>",
+    "callToAction":     "<1 sentence — site-specific>",
+    "trustSignals":     "<1 sentence — site-specific>",
+    "mobileExperience": "<1 sentence — site-specific>",
+    "pageSpeed":        "<1 sentence — site-specific>",
+    "copyClarity":      "<1 sentence — site-specific>",
+    "visualHierarchy":  "<1 sentence — site-specific>"
+  },
+
+  "criticalIssues": [
+    {
+      "title": "<Short, specific issue title — must reference the actual site, not generic>",
+      "section": "<Exact section — e.g. 'Hero headline', 'Pricing section', 'Navigation bar', 'Above-the-fold CTA', 'Footer', 'Product description', 'Checkout flow'>",
+      "description": "<2–3 sentences. What is specifically wrong. Reference the likely industry, audience, and page element. Imagine you spent 20 minutes on this page — what exactly did you see?>",
+      "psychologyNote": "<1–2 sentences. Which psychological principle is being violated or missed — e.g. 'Cognitive load theory: visitors arriving from a paid ad encounter 4 competing CTAs in the first viewport, creating decision paralysis before they understand the offer.' Be academically precise.>",
+      "businessImpact": "<Specific estimated impact — e.g. 'Based on industry benchmarks for ${domain.split('.')[0]}-category sites, this issue likely contributes to a 25–40% drop-off at this stage of the funnel.' Be credible, not vague.>",
+      "userFeeling": "<What a real visitor feels at this moment — write from the visitor's POV, conversational, honest. e.g. 'I landed here from a Google ad but I still can't tell what exactly I'd be paying for. Am I signing up for software? A service? I'm about to leave.'>",
+      "fix": "<Specific, implementable recommendation. Include copy suggestions, layout changes, or technical fixes where appropriate. Enough detail for a developer or designer to act on immediately.>",
+      "effort": "<Quick (hours)|Medium (days)|Investment (weeks)>",
+      "impact": "<High|Medium|Low>"
+    }
+  ],
+
+  "quickWins": [
+    {
+      "title": "<Quick win title — specific to this site>",
+      "description": "<What exactly to change, and why it will work for this specific site and audience>",
+      "estimatedLift": "<Specific range — e.g. '+12–22% click-through on primary CTA'>",
+      "effort": "<Quick (hours)|Medium (days)>",
+      "category": "<Copy|Design|Trust|CTA|UX|Speed>"
+    }
+  ],
+
+  "strengths": [
+    {
+      "title": "<Strength title — site-specific>",
+      "description": "<What they're doing well and why it helps conversions — be specific to this site>"
+    }
+  ],
+
+  "conversionLeaks": [
+    "<Specific drop-off point — e.g. 'Visitors arriving on mobile likely abandon at the pricing section because the comparison table requires horizontal scrolling on small viewports'>",
+    "<Another specific leak — reference a real place in the funnel>",
+    "<Optional third leak>"
+  ],
+
+  "competitorGap": "<1–2 sentences. What do top competitors in this specific vertical typically do better? Reference the industry and 1–2 specific practices this site is missing relative to the category standard.>",
+
+  "nextSteps": [
+    "<Priority action #1 — specific, sequenced, with a reason why it comes first>",
+    "<Priority action #2 — builds on #1 or addresses next most critical issue>",
+    "<Priority action #3 — medium-term improvement>"
+  ]
 }
 
-// ── Input validation ──────────────────────────────────────────────────────────
-function validateUrl(raw) {
-  if (!raw || typeof raw !== 'string') return { ok: false, error: 'A website URL is required.' };
-  const t = raw.trim();
-  if (t.length < 4 || t.length > 500) return { ok: false, error: 'URL must be 4–500 characters.' };
-  let p;
-  try { p = new URL(t); } catch { return { ok: false, error: 'Invalid URL. Make sure it starts with https://' }; }
-  if (p.protocol !== 'https:' && p.protocol !== 'http:') return { ok: false, error: 'URL must start with https://' };
-  return { ok: true, url: p.href };
+Array sizes:
+- criticalIssues: 3–5 items, ordered highest impact first
+- quickWins: 3–4 items
+- strengths: 2–4 items
+- conversionLeaks: 2–3 items
+- nextSteps: exactly 3 items
+
+Final check before responding: Read every field. If any observation could apply to a random website without changing a word — rewrite it to be specific to ${domain}.`;
 }
 
-function sanitise(s, n) {
-  if (typeof s !== 'string') return '';
-  return s.replace(/[^a-zA-Z0-9 &\-/.,]/g, '').trim().slice(0, n || 80);
-}
-
-// ── Anthropic API call ────────────────────────────────────────────────────────
-function callAnthropic(apiKey, model, prompt) {
+// ─────────────────────────────────────────────────────────────────────
+// ANTHROPIC CALL
+// ─────────────────────────────────────────────────────────────────────
+function callAnthropic(apiKey, prompt) {
   return new Promise((resolve, reject) => {
-    const bodyStr = JSON.stringify({ model, max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
+    const body = JSON.stringify({
+      model: 'claude-opus-4-6',
+      max_tokens: 4000,
+      messages: [{ role: 'user', content: prompt }],
+    });
+
     const options = {
-      hostname: 'api.anthropic.com', port: 443, path: '/v1/messages', method: 'POST',
+      hostname: 'api.anthropic.com',
+      port: 443,
+      path: '/v1/messages',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
-        'Content-Length': Buffer.byteLength(bodyStr),
+        'Content-Length': Buffer.byteLength(body),
       },
     };
+
     const req = https.request(options, (res) => {
       let data = '';
-      res.on('data', c => { data += c; });
+      res.on('data', chunk => { data += chunk; });
       res.on('end', () => {
-        console.log(`[CM] Anthropic status: ${res.statusCode} model: ${model}`);
-        let parsed;
-        try { parsed = JSON.parse(data); } catch { return reject(Object.assign(new Error('Non-JSON Anthropic response'), { status: res.statusCode })); }
-        if (res.statusCode === 200) return resolve(parsed);
-        const msg = parsed?.error?.message || `HTTP ${res.statusCode}`;
-        console.error(`[CM] Anthropic error (${res.statusCode}): ${msg}`);
-        reject(Object.assign(new Error(msg), { status: res.statusCode }));
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            reject(new Error(`Anthropic ${res.statusCode}: ${parsed?.error?.message || data.substring(0, 200)}`));
+          } else {
+            resolve(parsed);
+          }
+        } catch {
+          reject(new Error(`Failed to parse Anthropic response: ${data.substring(0, 200)}`));
+        }
       });
     });
-    // 25s timeout — safe for Vercel Pro 30s limit
-    req.setTimeout(25000, () => { req.destroy(); reject(Object.assign(new Error('Anthropic timed out (25s)'), { status: 408 })); });
-    req.on('error', e => reject(Object.assign(new Error('Network error: ' + e.message), { status: 503 })));
-    req.write(bodyStr);
+
+    req.on('error', reject);
+    req.setTimeout(58000, () => { req.destroy(); reject(new Error('Anthropic API timed out')); });
+    req.write(body);
     req.end();
   });
 }
-
-// ── Prompt — concise output that fits in 1000 tokens ────────────────────────
-function buildPrompt(url, industry) {
-  const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-  return `You are a senior CRO expert. Analyse ${url} for the ${industry} industry.
-
-IMPORTANT: Keep every description under 20 words. Be specific, not verbose.
-
-Return ONLY this exact JSON structure, no markdown, no extra text:
-{"siteName":"name","overallScore":54,"overallGrade":"C+","overallSummary":"One clear sentence about conversion performance.","scores":{"trustCredibility":50,"visualHierarchy":60,"conversionFunnel":42,"psychologicalTriggers":47,"messagingClarity":58,"mobileExperience":65},"weaknesses":[{"severity":"HIGH","title":"Short title","description":"Principle name + specific problem under 20 words"},{"severity":"HIGH","title":"Short title","description":"Under 20 words"},{"severity":"MED","title":"Short title","description":"Under 20 words"},{"severity":"MED","title":"Short title","description":"Under 20 words"},{"severity":"LOW","title":"Short title","description":"Under 20 words"}],"psychologicalAnalysis":[{"trigger":"Social Proof","issue":"Specific 15-word finding for ${domain}"},{"trigger":"Scarcity / Urgency","issue":"15-word finding"},{"trigger":"Authority Signals","issue":"15-word finding"},{"trigger":"Loss Aversion","issue":"15-word finding"},{"trigger":"Cognitive Load","issue":"15-word finding"},{"trigger":"Reciprocity","issue":"15-word finding"}],"improvementPlan":[{"phase":"WEEK 1-2","label":"Quick Wins","color":"#22C55E","title":"Immediate Fixes","items":["Specific action","Specific action","Specific action"]},{"phase":"MONTH 1","label":"Core Changes","color":"#7B5CF6","title":"Strategic Improvements","items":["Specific action","Specific action","Specific action"]}],"revenueProjection":{"currentConversionRate":"1.4%","projectedConversionRate":"3.1%","estimatedUplift":"+121%","timeframe":"90 days"}}
-
-Fill in all values with real observations about ${domain}. Return pure JSON only.`;
-}
-
-// ── Model order: sonnet first (best quality), haiku as fallback ───────────────
-const MODELS = ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6'];
-
-// ── Main handler ──────────────────────────────────────────────────────────────
-module.exports = async function handler(req, res) {
-  res.setHeader('Content-Type', 'application/json');
-  // ── CORS origin check ────────────────────────────────────────────────────────
-  const allowedOrigin = process.env.ALLOWED_ORIGIN || '*';
-  const requestOrigin = req.headers.origin || '';
-  if (allowedOrigin !== '*' && requestOrigin && requestOrigin !== allowedOrigin) {
-    return res.status(403).json({ error: true, message: 'Origin not allowed.' });
-  }
-  res.setHeader('Access-Control-Allow-Origin', allowedOrigin === '*' ? '*' : requestOrigin);
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: true, message: 'Use POST.' });
-
-  // ── Rate limiting ─────────────────────────────────────────────────────────
-  const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
-  if (isRateLimited(ip)) {
-    console.warn(`[CM] Rate limited: ${ip}`);
-    return res.status(429).json({ error: true, message: 'Too many requests. Please wait and try again.' });
-  }
-
-  pruneIfNeeded();
-
-  // ── Parse & validate ───────────────────────────────────────────────────────
-  let body;
-  try { body = await readBody(req); }
-  catch (e) { return res.status(400).json({ error: true, message: e.message }); }
-
-  const urlResult = validateUrl(body.url);
-  if (!urlResult.ok) return res.status(400).json({ error: true, message: urlResult.error });
-
-  const safeUrl      = urlResult.url;
-  const safeIndustry = sanitise(body.industry, 60) || 'General Business';
-  console.log(`[CM] Analysing: ${safeUrl} | ${safeIndustry} | IP: ${ip}`);
-
-  // ── Cache lookup ───────────────────────────────────────────────────────────
-  const cacheKey = `${safeUrl}::${safeIndustry}`;
-  const cached   = cache.get(cacheKey);
-  if (cached && (Date.now() - cached.ts < CACHE_TTL_MS)) {
-    console.log(`[CM] Cache hit for ${safeUrl}`);
-    return res.status(200).json(cached.result);
-  }
-
-  // ── API key ────────────────────────────────────────────────────────────────
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  console.log('[CM] API key present:', apiKey ? `YES (${apiKey.length} chars)` : 'NO');
-  if (!apiKey) return res.status(500).json({ error: true, message: 'Server not configured. Contact support.', details: 'ANTHROPIC_API_KEY missing.' });
-
-  // ── Call Anthropic with model fallback ─────────────────────────────────────
-  const prompt = buildPrompt(safeUrl, safeIndustry);
-  let apiResponse = null;
-  let lastErr     = null;
-
-  for (const model of MODELS) {
-    console.log(`[CM] Trying: ${model}`);
-    try {
-      apiResponse = await callAnthropic(apiKey, model, prompt);
-      console.log(`[CM] Success: ${model}`);
-      break;
-    } catch (e) {
-      lastErr = e;
-      console.error(`[CM] ${model} failed: ${e.status} ${e.message}`);
-      if (e.status === 401) return res.status(500).json({ error: true, message: 'API key invalid. Check ANTHROPIC_API_KEY in Vercel settings.' });
-      if (e.status === 429) return res.status(429).json({ error: true, message: 'AI rate limit reached. Please wait a minute and try again.' });
-      if (e.status !== 404) break; // stop retrying on timeout (408) — second model will also timeout
-    }
-  }
-
-  if (!apiResponse) {
-    return res.status(500).json({
-      error: true, message: 'AI analysis failed.',
-      details: lastErr ? `${lastErr.status}: ${lastErr.message}` : 'All models failed',
-    });
-  }
-
-  // ── Extract & parse JSON ───────────────────────────────────────────────────
-  const rawText = (apiResponse.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
-  if (!rawText) return res.status(500).json({ error: true, message: 'AI returned empty response. Please try again.' });
-
-  console.log('[CM] Raw response length:', rawText.length, 'chars. Preview:', rawText.slice(0, 120).replace(/\n/g, ' '));
-
-  // Strip markdown fences
-  let cleaned = rawText
-    .replace(/^```json[^\n]*\n?/i, '').replace(/^```[^\n]*\n?/i, '')
-    .replace(/\n?```\s*$/i, '').trim();
-
-  // Use balanced-bracket extraction starting from first { — most robust method
-  function extractOutermostJSON(text) {
-    let depth = 0, start = -1;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      // Skip over string contents so inner {} don't confuse depth count
-      if (ch === '"' && (i === 0 || text[i-1] !== '\\')) {
-        i++;
-        while (i < text.length && !(text[i] === '"' && text[i-1] !== '\\')) i++;
-        continue;
-      }
-      if (ch === '{') { if (start === -1) start = i; depth++; }
-      else if (ch === '}') { depth--; if (depth === 0 && start !== -1) return text.slice(start, i + 1); }
-    }
-    return null;
-  }
-
-  const jsonStr = extractOutermostJSON(cleaned);
-  if (!jsonStr) {
-    console.error('[CM] No JSON object found. Raw (400 chars):', rawText.slice(0, 400));
-    return res.status(500).json({ error: true, message: 'AI returned unexpected format. Please try again.', raw: rawText.slice(0, 200) });
-  }
-
-  let analysis;
-  try {
-    analysis = JSON.parse(jsonStr);
-  } catch (e) {
-    // Attempt 2: strip trailing commas (common LLM mistake)
-    try {
-      analysis = JSON.parse(jsonStr.replace(/,([\s\n]*[}\]])/g, '$1'));
-      console.log('[CM] JSON fixed with trailing-comma strip');
-    } catch (e2) {
-      console.error('[CM] JSON.parse failed:', e2.message);
-      console.error('[CM] JSON string (first 500):', jsonStr.slice(0, 500));
-      return res.status(500).json({ error: true, message: 'Failed to parse AI response. Please try again.', raw: jsonStr.slice(0, 300) });
-    }
-  }
-
-  // ── Validate fields ────────────────────────────────────────────────────────
-  const required = ['siteName','overallScore','overallGrade','overallSummary','scores','weaknesses','psychologicalAnalysis','improvementPlan','revenueProjection'];
-  for (const f of required) {
-    if (!(f in analysis)) return res.status(500).json({ error: true, message: `Incomplete analysis (missing: ${f}). Please try again.` });
-  }
-
-  // ── Cache & return ─────────────────────────────────────────────────────────
-  cache.set(cacheKey, { result: analysis, ts: Date.now() });
-  console.log(`[CM] Done. Cached result for ${safeUrl}`);
-  return res.status(200).json(analysis);
-};
